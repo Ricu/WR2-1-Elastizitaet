@@ -1,15 +1,27 @@
-function [K,M,b] = assemble(tri,x,order,f)
+function [K,M,b] = elast_assemble(tri,vert,order,f)
+%Assemblierungsroutine
+% Input: 
+% tri: 
+% vert:
+% order:
+% f:
+
+% Output:
+% K: Steifigkeitsmatrix fuer das gegebene Element
+% M: Massenmatrix fuer das gegebene Element
+% b: Lastvektor fuer das gegebene Element
+
 % Number of x and base functions
 numElements = size(tri,1);
 numBaseFun = (order+2)*(order+1)/2;
 nBF2 = numBaseFun^2; % Anzahl Elemente der lokalen Steifigkeitsmatrix
-
+gmres()
 % Prepare matrices for sparse()
 K_val = zeros(nBF2*numElements,1); 
 M_val = K_val;
 iIndex = K_val; 
 jIndex = K_val;
-b = zeros(size(x,1),1);
+b = zeros(size(vert,1),1);
 
 % Load function and quadrature data
 [phi,d_phi] = baseFun(order);
@@ -22,7 +34,7 @@ elseif order == 2
 end
 
 for i = 1:size(tri,1)
-    [B,d]=aff_map(x,tri(i,:));
+    [B,d]=aff_map(vert,tri(i,:));
     [K_T,M_T,b_T] = getMatrices(B,d,f,phi,d_phi,quad_low,quad_high);
     
     % Assignments for sparse()
@@ -32,9 +44,22 @@ for i = 1:size(tri,1)
     M_val((i-1)*nBF2+1:i*nBF2) = reshape(M_T,nBF2,1);
     b(tri(i,:)) = b(tri(i,:)) + b_T;
 end
-n = size(x,1);
+n = size(vert,1);
 K = sparse(iIndex,jIndex,K_val,n,n);
 M = sparse(iIndex,jIndex,M_val,n,n);
+
+%TODO Randbedingung hier
+% Wenn in der Funktion: brauchen argumente:
+% dirichlet markiert Dirichletrand
+% inner markiert Innere Knoten
+% gDirichlet ist Dirichletrand funktion
+% 
+% b(dirichlet)=gDirichlet(knoten(dirichlet,:));
+% b(inner)=b(inner)-K(inner,dirichlet)*b(dirichlet);
+% K(dirichlet,:)=0;
+% K(:,dirichlet)=0;
+% K(dirichlet,dirichlet)=speye(nnz(dirichlet));
+
 end
 
 %% Get matrices
@@ -53,6 +78,7 @@ for i = 1:numBaseFunc
         %% Matrix K_T
         x = quad_low.knoten(:,1);
         y = quad_low.knoten(:,2);
+        %TODO Effizienz vs. Intuition
         temp = dot([d_phi{1,i}(x,y), d_phi{2,i}(x,y)]*invb,...
                    [d_phi{1,j}(x,y), d_phi{2,j}(x,y)]*invb,2);
         K(i,j) = detb* sum(quad_low.gewichte .* temp);
@@ -61,6 +87,7 @@ for i = 1:numBaseFunc
     %% Vektor b_T
     v_ref = quad_high.knoten';
     v = B*v_ref +d;
+    %TODO Effizienz vs. Intuition
     temp = f(v(1,:),v(2,:)).*phi{i}(v_ref(1,:),v_ref(2,:));
     b(i) = detb* sum(quad_high.gewichte'.*temp);
 end
