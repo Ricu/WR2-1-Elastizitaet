@@ -102,3 +102,37 @@ a3 = coords(x(3),1:2)';
 d = a1;
 B = [a2-a1 , a3-a1];
 end
+
+function KK = ElasticStiffness(x,y,mu,lambda)
+% triangle area and gradients (b,c) of hat functions
+[area,b,c]=HatGradients(x,y);
+% elastic matrix
+D=mu*[2 0 0; 0 2 0; 0 0 1]+lambda*[1 1 0; 1 1 0; 0 0 0];
+% strain matrix
+BK=[b(1) 0 b(2) 0 b(3) 0 ;
+0 c(1) 0 c(2) 0 c(3);
+c(1) b(1) c(2) b(2) c(3) b(3)];
+% element stiffness matrix
+KK=BK'*D*BK*area;
+end
+
+function MK = ElasticMass(x,y)
+area=polyarea(x,y);
+MK=[2 0 1 0 1 0;
+0 2 0 1 0 1;
+1 0 2 0 1 0;
+0 1 0 2 0 1;
+1 0 1 0 2 0;
+0 1 0 1 0 2]*area/12;
+end
+
+function [mu,lambda] = Enu2Lame(E,nu)
+mu=E/(2*(1+nu));
+lambda=E*nu/((1+nu)*(1-2*nu));
+end
+
+function f = Force(x,y)
+f=[35/13*y-35/13*y.^2+10/13*x-10/13*x.^2;
+-25/26*(-1+2*y).*(-1+2*x)];
+end
+
