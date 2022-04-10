@@ -103,36 +103,90 @@ d = a1;
 B = [a2-a1 , a3-a1];
 end
 
+function ElasticSolver()
+    g=Rectg(0,0,1,1);
+    [p,e,t]=initmesh(g,"hmax",0.1);
+    E=1; nu=0.3;
+    [mu,lambda]=Enu2Lame(E,nu);
+    [K,M,F]=ElasticAssembler(p,e,t,mu,lambda,@Force);
+    bdry=unique([e(1,:) e(2,:)]);
+    fixed=[2*bdry-1 2*bdry];
+    values=zeros(length(fixed),1);
+    ndof=length(F);
+    free=setdiff([1:ndof],fixed);
+    F=F(free)-K(free,fixed)*values;
+    K=K(free,free);
+    d=zeros(ndof,1);
+    d(free)=K\F;
+    d(fixed)=values;
+    U=d(1:2:end); V=d(2:2:end);
+    figure(1), pdesurf(p,t,U), title("(u_h)_1")
+    figure(2), pdesurf(p,t,V), title("(u_h)_2")
+end
+
+function [K,M,F] = ElasticAssembler(p,e,t,lambda,mu,force)
+    ndof=2*size(p,2); % total number of degrees of freedom
+    K=sparse(ndof,ndof); % allocate stiffness matrix
+    M=sparse(ndof,ndof); % allocate mass matrix
+    F=zeros(ndof,1); % allocate load vector
+    dofs=zeros(6,1); % allocate element degrees of freedom
+    for i=1:size(t,2) % assemly loop over elements
+    nodes=t(1:3,i); % element nodes
+    x=p(1,nodes); y=p(2,nodes); % node coordinates
+    dofs(2:2:end)=2*nodes; % element degrees of freedom
+    dofs(1:2:end)=2*nodes-1;
+    f=force(x,y); % evaluate force at nodes
+    KK=ElasticStiffness(x,y,lambda,mu); % element stiffness
+    MK=ElasticMass(x,y); % element mass
+    fK=[f(1,1) f(2,1) f(1,2) f(2,2) f(1,3) f(2,3)]’;
+    FK=MK*fK; % element load
+    K(dofs,dofs)=K(dofs,dofs)+KK; % add to stiffness matrix
+    M(dofs,dofs)=M(dofs,dofs)+MK; % add to mass matrix
+    F(dofs)=F(dofs)+FK; % add to load vector
+    
+    bdry=unique([e(1,:) e(2,:)]); % boundary nodes
+    fixed=[2*bdry-1 2*bdry]; % boundary degrees of freedom, DoFs
+    values=zeros(length(fixed),1); % zero boundary values
+    ndof=length(F); % total number of DoFs
+    free=setdiff([1:ndof],fixed); % free DoFs
+    F=F(free)-K(free,fixed)*values; % modify load for BC
+    K=K(free,free); % modify stiffness for BC
+    d=zeros(ndof,1); % nodal displacement vector
+    d(free)=K\F; % solve for free DoFs
+    d(fixed)=values; % insert known DoFs
+end
+
+
 function KK = ElasticStiffness(x,y,mu,lambda)
-% triangle area and gradients (b,c) of hat functions
-[area,b,c]=HatGradients(x,y);
-% elastic matrix
-D=mu*[2 0 0; 0 2 0; 0 0 1]+lambda*[1 1 0; 1 1 0; 0 0 0];
-% strain matrix
-BK=[b(1) 0 b(2) 0 b(3) 0 ;
-0 c(1) 0 c(2) 0 c(3);
-c(1) b(1) c(2) b(2) c(3) b(3)];
-% element stiffness matrix
-KK=BK'*D*BK*area;
+    % triangle area and gradients (b,c) of hat functions
+    [area,b,c]=HatGradients(x,y);
+    % elastic matrix
+    D=mu*[2 0 0; 0 2 0; 0 0 1]+lambda*[1 1 0; 1 1 0; 0 0 0];
+    % strain matrix
+    BK=[b(1) 0 b(2) 0 b(3) 0 ;
+    0 c(1) 0 c(2) 0 c(3);
+    c(1) b(1) c(2) b(2) c(3) b(3)];
+    % element stiffness matrix
+    KK=BK'*D*BK*area;
 end
 
 function MK = ElasticMass(x,y)
-area=polyarea(x,y);
-MK=[2 0 1 0 1 0;
-0 2 0 1 0 1;
-1 0 2 0 1 0;
-0 1 0 2 0 1;
-1 0 1 0 2 0;
-0 1 0 1 0 2]*area/12;
+    area=polyarea(x,y);
+    MK=[2 0 1 0 1 0;
+    0 2 0 1 0 1;
+    1 0 2 0 1 0;
+    0 1 0 2 0 1;
+    1 0 1 0 2 0;
+    0 1 0 1 0 2]*area/12;
 end
 
 function [mu,lambda] = Enu2Lame(E,nu)
-mu=E/(2*(1+nu));
-lambda=E*nu/((1+nu)*(1-2*nu));
+    mu=E/(2*(1+nu));
+    lambda=E*nu/((1+nu)*(1-2*nu));
 end
 
 function f = Force(x,y)
-f=[35/13*y-35/13*y.^2+10/13*x-10/13*x.^2;
--25/26*(-1+2*y).*(-1+2*x)];
+    f=[35/13*y-35/13*y.^2+10/13*x-10/13*x.^2;
+    -25/26*(-1+2*y).*(-1+2*x)];
 end
 
