@@ -15,8 +15,8 @@ function ElasticSolverOrig()
     d(free)=K\F;
     d(fixed)=values;
     U=d(1:2:end); V=d(2:2:end);
-    figure(1), pdesurf(p,t,U), title("(u_h)_1")
-    figure(2), pdesurf(p,t,V), title("(u_h)_2")
+    subplot(1,2,1), pdesurf(p,t,U), title("(u_h)_1")
+    subplot(1,2,2), pdesurf(p,t,V), title("(u_h)_2")
 end
 
 function [K,M,F] = ElasticAssembler(p,e,t,lambda,mu,force)

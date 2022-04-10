@@ -1,6 +1,6 @@
 function ElasticSolver()
-    g=Rectg(0,0,1,1);
-    [p,e,t]=initmesh(g,"hmax",0.1);
+%     g=Rectg(0,0,1,1);
+%     [p,e,t]=initmesh(g,"hmax",0.1);
     [x,tri] = genMeshSquare(1,10);
     tri = [tri,ones(length(tri),1)];
     e = 0;
@@ -8,6 +8,9 @@ function ElasticSolver()
     xLim = [0,1];
     yLim = [0,1];
     dirichlet = or(ismember(x(:,1),xLim), ismember(x(:,2),yLim));
+    ind = [2*find(dirichlet)-1 ; 2*find(dirichlet)];
+    dirichlet = false(2*length(x),1);
+    dirichlet(ind) = true;
     [mu,lambda]=Enu2Lame(E,nu);
     [K,M,F]=ElasticAssembler(x',e,tri',mu,lambda,@Force);
 %     bdry=unique([e(1,:) e(2,:)]); % boundary nodes
@@ -22,6 +25,7 @@ function ElasticSolver()
     d(~dirichlet)=K\F; % solve for free DoFs
 %     d(dirichlet)=values; % insert known DoFs
     U=d(1:2:end); V=d(2:2:end);
+    figure()
     subplot(1,2,1), trisurf(tri,x(:,1),x(:,2),U), title("(u_h)_1")
     subplot(1,2,2), trisurf(tri,x(:,1),x(:,2),V), title("(u_h)_2")
 end
