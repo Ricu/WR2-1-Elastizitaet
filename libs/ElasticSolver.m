@@ -31,24 +31,39 @@ function ElasticSolver()
 end
 
 function [K,M,F] = ElasticAssembler(p,e,t,lambda,mu,force)
-    ndof=2*size(p,2); % total number of degrees of freedom
-    K=sparse(ndof,ndof); % allocate stiffness matrix
-    M=sparse(ndof,ndof); % allocate mass matrix
-    F=zeros(ndof,1); % allocate load vector
-    dofs=zeros(6,1); % allocate element degrees of freedom
-    for i=1:size(t,2) % assemly loop over elements
-        nodes=t(1:3,i); % element nodes
-        x=p(1,nodes); y=p(2,nodes); % node coordinates
+% Input: p als matrix mit allen Knoten
+% Input: e als matrix mit allen Kanten
+% Input: t als matrix mit allen Verbindungen der Trainagulierung
+
+% Output: K als global assemblierte Steifigkeitsmatrix
+% Output: M als global assemblierte Massenmatrix
+% Output: F als global assemblierter load vector
+    ndof=2*size(p,2); % absolute Anzahl der Freiheitsgrade entspricht ...
+                      % der Anzahl an Knoten*2
+    K=sparse(ndof,ndof); % initialisiere Steifigkeitsmatrix
+    M=sparse(ndof,ndof); % initialisiere Massenmatrix
+    F=zeros(ndof,1); % initialisiere load vector
+    dofs=zeros(6,1); % initialisiere Anzahl Freiheitsgrade je Element
+    for i=1:size(t,2) % Elementweises Vorgehen
+        nodes=t(1:3,i); % Elementknoten
+        x=p(1,nodes); y=p(2,nodes); % Koordinaten der Knoten
+
+        f=force(x,y); % evaluate force at nodes
+        KK=ElasticStiffness(x,y,lambda,mu); % Element Steifigkeitsmatrix
+        MK=ElasticMass(x,y); % Element Massenmatrix
+        fK=[f(1,1) f(2,1) f(1,2) f(2,2) f(1,3) f(2,3)]'; % nodal force ...
+                                                         % values aufstellen
+        FK=MK*fK; % Element load vector
+        
+        % Assembliere durch addieren der Element Matrixen an die richtigen
+        % Stellen der globalen Matrixen
+        % The two displacement components in node number i is mapped onto
+        % vector entries d(2i-1) and d(2i)
         dofs(2:2:end)=2*nodes; % element degrees of freedom
         dofs(1:2:end)=2*nodes-1;
-        f=force(x,y); % evaluate force at nodes
-        KK=ElasticStiffness(x,y,lambda,mu); % element stiffness
-        MK=ElasticMass(x,y); % element mass
-        fK=[f(1,1) f(2,1) f(1,2) f(2,2) f(1,3) f(2,3)]';
-        FK=MK*fK; % element load
-        K(dofs,dofs)=K(dofs,dofs)+KK; % add to stiffness matrix
-        M(dofs,dofs)=M(dofs,dofs)+MK; % add to mass matrix
-        F(dofs)=F(dofs)+FK; % add to load vector
+        K(dofs,dofs)=K(dofs,dofs)+KK; % addieren zur Steifigkietsmatrix
+        M(dofs,dofs)=M(dofs,dofs)+MK; % addieren zur Massenmatrix
+        F(dofs)=F(dofs)+FK; % addieren zum load vector
     end
     
 %     bdry=unique([e(1,:) e(2,:)]); % boundary nodes
@@ -65,6 +80,11 @@ end
 
 
 function KK = ElasticStiffness(x,y,mu,lambda)
+% Input: x und y Koordinaten eines Elements
+% Input: Lame Parameter mu und lambda
+
+% Output: Element Steifigkeitsmatrix
+
     % triangle area and gradients (b,c) of hat functions
     [area,b,c]=HatGradients(x,y);
     % elastic matrix
@@ -88,6 +108,10 @@ function MK = ElasticMass(x,y)
 end
 
 function [mu,lambda] = Enu2Lame(E,nu)
+% Input: E ist der Young modulus
+% Input: nu ist die Poisson ratio
+
+% Output: Lame Parameter mu und lambda
     mu=E/(2*(1+nu));
     lambda=E*nu/((1+nu)*(1-2*nu));
 end
@@ -98,6 +122,9 @@ function f = Force(x,y)
 end
 
 function [area,b,c] = HatGradients(x,y)
+% Input: x und y Koordinaten eines Elements
+
+% Output: ...
     area=polyarea(x,y);
     b=[y(2)-y(3); y(3)-y(1); y(1)-y(2)]/2/area;
     c=[x(3)-x(2); x(1)-x(3); x(2)-x(1)]/2/area;
