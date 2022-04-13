@@ -34,11 +34,11 @@ F=zeros(ndof,1); % initialisiere load vector
 dofs=zeros(6,1); % initialisiere Anzahl Freiheitsgrade je Element
 for i=1:size(t,2) % Elementweises Vorgehen
     nodes=t(1:3,i); % Elementknoten
-    vert=p(1,nodes); y=p(2,nodes); % Koordinaten der Knoten
+    x=p(1,nodes); y=p(2,nodes); % Koordinaten der Knoten
     
-    f=force(vert,y); % evaluate force at nodes
-    KK=elasticStiffness(vert,y,lambda,mu); % Element Steifigkeitsmatrix
-    MK=elasticMass(vert,y); % Element Massenmatrix
+    f=force(x,y); % evaluate force at nodes
+    KK=elasticStiffness(x,y,lambda,mu); % Element Steifigkeitsmatrix
+    MK=elasticMass(x,y); % Element Massenmatrix
     fK=[f(1,1) f(2,1) f(1,2) f(2,2) f(1,3) f(2,3)]'; % nodal force ...
     % values aufstellen
     FK=MK*fK; % Element load vector
@@ -57,14 +57,14 @@ end
 end
 
 
-function KK = elasticStiffness(vert,y,mu,lambda)
-% Input: vert und y Koordinaten eines Elements
+function KK = elasticStiffness(x,y,mu,lambda)
+% Input: x und y Koordinaten eines Elements
 % Input: Lame Parameter mu und lambda
 
 % Output: Element Steifigkeitsmatrix
 
 % triangle area and gradients (b,c) of hat functions
-[area,b,c]=hatGradients(vert,y);
+[area,b,c]=hatGradients(x,y);
 % elastic matrix
 D=mu*[2 0 0; 0 2 0; 0 0 1]+lambda*[1 1 0; 1 1 0; 0 0 0];
 % strain matrix
@@ -75,8 +75,8 @@ BK=[b(1) 0 b(2) 0 b(3) 0 ;
 KK=BK'*D*BK*area;
 end
 
-function MK = elasticMass(vert,y)
-area=polyarea(vert,y);
+function MK = elasticMass(x,y)
+area=polyarea(x,y);
 MK=[2 0 1 0 1 0;
     0 2 0 1 0 1;
     1 0 2 0 1 0;
@@ -94,11 +94,11 @@ mu=E/(2*(1+nu));
 lambda=E*nu/((1+nu)*(1-2*nu));
 end
 
-function [area,b,c] = hatGradients(vert,y)
-% Input: vert und y Koordinaten eines Elements
+function [area,b,c] = hatGradients(x,y)
+% Input: x und y Koordinaten eines Elements
 
 % Output: ...
-area=polyarea(vert,y);
+area=polyarea(x,y);
 b=[y(2)-y(3); y(3)-y(1); y(1)-y(2)]/2/area;
-c=[vert(3)-vert(2); vert(1)-vert(3); vert(2)-vert(1)]/2/area;
+c=[x(3)-x(2); x(1)-x(3); x(2)-x(1)]/2/area;
 end
