@@ -94,11 +94,6 @@ mu=E/(2*(1+nu));
 lambda=E*nu/((1+nu)*(1-2*nu));
 end
 
-function f = force(vert,y)
-f=[35/13*y-35/13*y.^2+10/13*vert-10/13*vert.^2;
-    -25/26*(-1+2*y).*(-1+2*vert)];
-end
-
 function [area,b,c] = hatGradients(vert,y)
 % Input: vert und y Koordinaten eines Elements
 
