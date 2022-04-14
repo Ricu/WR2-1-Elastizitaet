@@ -35,7 +35,7 @@ deformed_area(:,1) = deformed_area(:,1) + U; % Deformierung in x_1 Richtung
 deformed_area(:,2) = deformed_area(:,2) + V; % Deformierung in x_2 Richtung
 
 figure() % Neues Fenster erzeugen
-scatter(vert(:,1),vert(:,2),'filled'); hold on; % Urspruengliche Flaeche plotten
-scatter(deformed_area(:,1),deformed_area(:,2)); % Deformierte Flaeche plotten
-legend("Old","New") % Legende hinzufügen
+scatter(vert(:,1),vert(:,2),'k','filled'); hold on; % Urspruengliche Flaeche plotten
+scatter(deformed_area(:,1),deformed_area(:,2),46); % Deformierte Flaeche plotten
 quiver(vert(:,1),vert(:,2),U,V,0) % Berechnetes Vektorfeld (Verschiebung) plotten
+legend("Original","Deformiert","Verschiebung") % Legende hinzufuegen

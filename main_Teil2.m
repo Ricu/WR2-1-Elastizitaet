@@ -30,3 +30,14 @@ gD = @(x) 0*x; % Dirichlet-Randwertfunktion
 figure() % Neues Fenster erzeugen
 subplot(1,2,1), trisurf(tri,vert(:,1),vert(:,2),U), title("(u_h)_1") % Loesung in x_1 Richtung plotten
 subplot(1,2,2), trisurf(tri,vert(:,1),vert(:,2),V), title("(u_h)_2") % Loesung in x_2 Richtung plotten
+
+%% Deformierte Flaeche darstellen
+deformed_area = vert; % Deformierte Liste initialisieren
+deformed_area(:,1) = deformed_area(:,1) + U; % Deformierung in x_1 Richtung
+deformed_area(:,2) = deformed_area(:,2) + V; % Deformierung in x_2 Richtung
+
+figure() % Neues Fenster erzeugen
+scatter(vert(:,1),vert(:,2),'k','filled'); hold on; % Urspruengliche Flaeche plotten
+scatter(deformed_area(:,1),deformed_area(:,2),46); % Deformierte Flaeche plotten
+quiver(vert(:,1),vert(:,2),U,V,0) % Berechnetes Vektorfeld (Verschiebung) plotten
+legend("Original","Deformiert","Verschiebung") % Legende hinzufuegen
