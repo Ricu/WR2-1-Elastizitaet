@@ -1,4 +1,4 @@
-function [p,t]=distmesh2d(fd,fh,h0,bbox,pfix,varargin)
+function [p,t]=distmesh2d(fd,fh,h0,bbox,plot,pfix,varargin)
 %DISTMESH2D 2-D Mesh Generator using Distance Functions.
 %   [P,T]=DISTMESH2D(FD,FH,H0,BBOX,PFIX,FPARAMS)
 %
@@ -75,7 +75,8 @@ N=size(p,1);                                         % Number of points N
 
 count=0;
 pold=inf;                                            % For first iteration
-clf,view(2),axis equal,axis off
+% clf,view(2),axis equal,axis off
+figure(); tiledlayout(1,3)
 while 1
   count=count+1;
   % 3. Retriangulation by the Delaunay algorithm
@@ -87,11 +88,15 @@ while 1
     % 4. Describe each bar by a unique pair of nodes
     bars=[t(:,[1,2]);t(:,[1,3]);t(:,[2,3])];         % Interior bars duplicated
     bars=unique(sort(bars,2),'rows');                % Bars as node pairs
-    % 5. Graphical output of the current mesh
-    cla,patch('vertices',p,'faces',t,'edgecol','k','facecol',[.8,.9,1]);
-    drawnow
   end
-
+    % 5. Graphical output of the current mesh
+    if (plot && ismember(count,[50,100,200])) 
+        nexttile
+        patch('vertices',p,'faces',t,'edgecol','k','facecol',[.8,.9,1]);
+        title(sprintf("Triangulation nach Iteration %i",count))
+        axis equal tight
+        drawnow
+    end
   % 6. Move mesh points based on bar lengths L and forces F
   barvec=p(bars(:,1),:)-p(bars(:,2),:);              % List of bar vectors
   L=sqrt(sum(barvec.^2,2));                          % L = Bar lengths
@@ -122,6 +127,6 @@ while 1
   if max(sqrt(sum(deltat*Ftot(d<-geps,:).^2,2))/h0)<dptol, break; end
 end
 
-% Clean up and plot final mesh
+% % Clean up and plot final mesh
 [p,t]=fixmesh(p,t);
-simpplot(p,t)
+% simpplot(p,t)
