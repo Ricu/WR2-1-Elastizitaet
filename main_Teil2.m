@@ -1,10 +1,22 @@
 clear; clc; % Konsolen Output und Variablen loeschen
 addpath('libs') % Hilfsfunktionen laden
-addpath('libs/distmesh') % Meshfunktion laden
+% addpath('libs/distmesh') % Meshfunktion laden
 %% Polygon 1
-pv = [-0.4 -0.5;0.4 -0.2;0.4 -0.7;1.5 -0.4;0.9 0.1;
-       1.6 0.8;0.5 0.5;0.2 1;0.1 0.4;-0.7 0.7;-0.4 -0.5]; % Eckpunkte definieren
-[vert,tri] = distmesh2d(@dpoly,@huniform,0.1,[-1,-1; 2,1],pv,pv); % Gitter erzeugen
+%   Example: (Polygon)
+%      pv=[-0.4 -0.5;0.4 -0.2;0.4 -0.7;1.5 -0.4;0.9 0.1;
+%          1.6 0.8;0.5 0.5;0.2 1;0.1 0.4;-0.7 0.7;-0.4 -0.5];
+%      [p,t]=distmesh2d(@dpoly,@huniform,0.1,[-1,-1; 2,1],pv,pv);
+pv = [-0.4,-0.5;...
+       0.4,-0.2;...
+       0.4,-0.7;...
+       1.5,-0.4;...
+       0.9, 0.1;...
+       1.6, 0.8;...
+       0.5, 0.5;...
+       0.2, 1  ;...
+       0.1, 0.4;...
+      -0.4, 0.7]; % Eckpunkte definieren
+[vert,tri] = distmesh2d(@dpoly,@huniform,0.1,[-1,-1; 2,1],true,pv,pv); % Gitter erzeugen
 
 %% Polygon 2
 % pv = [0, 0; 0, 22; 24, 30; 24, 22]; % Eckpunkte definieren
@@ -22,7 +34,7 @@ grid = struct("vert",vert,"tri",tri,"dirichlet",dirichlet); % Gitter in eine Str
 
 %% Testen
 E = 210; nu = 0.3; % Materialparameter
-f = @(vert,y) [ones(size(vert));ones(size(y))]; % Volumenkraft
+f = @(x,y) [ones(size(x));ones(size(y))]; % Volumenkraft
 gD = @(x) 0*x; % Dirichlet-Randwertfunktion
 
 [U,V] = elastSolver(grid,E,nu,f,gD); % Problem loesen
@@ -39,5 +51,5 @@ deformed_area(:,2) = deformed_area(:,2) + V; % Deformierung in x_2 Richtung
 figure() % Neues Fenster erzeugen
 scatter(vert(:,1),vert(:,2),'k','filled'); hold on; % Urspruengliche Flaeche plotten
 scatter(deformed_area(:,1),deformed_area(:,2),46); % Deformierte Flaeche plotten
-quiver(vert(:,1),vert(:,2),U,V,0) % Berechnetes Vektorfeld (Verschiebung) plotten
+% quiver(vert(:,1),vert(:,2),U,V,0) % Berechnetes Vektorfeld (Verschiebung) plotten
 legend("Original","Deformiert","Verschiebung") % Legende hinzufuegen
