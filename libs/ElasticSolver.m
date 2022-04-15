@@ -1,18 +1,26 @@
 function ElasticSolver()
 %     g=Rectg(0,0,1,1);
 %     [p,e,t]=initmesh(g,"hmax",0.1);
+    % Gittergenerierung und Erstellung von Knoten- und Elementlisten
     [x,tri] = genMeshSquare(1,10);
     tri = [tri,ones(length(tri),1)];
-    e = 0;
+    e = 0; % Kanten Matrix
+    % Paramater aus der Aufgabenstellung initialisieren
     E=1; nu=0.3;
     xLim = [0,1];
     yLim = [0,1];
+    % Definiere den Dirichlet-Rand
     dirichlet = or(ismember(x(:,1),xLim), ismember(x(:,2),yLim));
     ind = [2*find(dirichlet)-1 ; 2*find(dirichlet)];
     dirichlet = false(2*length(x),1);
     dirichlet(ind) = true;
+    % Berechne die Lame Parameter
     [mu,lambda]=Enu2Lame(E,nu);
+    % Brechne die globalen Steifigkeits-,Massenmatrix und den load vector
     [K,M,F]=ElasticAssembler(x',e,tri',mu,lambda,@Force);
+
+    % Integriere den homogenen Dirichletrand (Haben wir schon)
+    
 %     bdry=unique([e(1,:) e(2,:)]); % boundary nodes
 %     fixed=[2*bdry-1 2*bdry]; % boundary degrees of freedom, DoFs
 %     values=zeros(length(fixed),1); % zero boundary values
@@ -65,6 +73,12 @@ function [K,M,F] = ElasticAssembler(p,e,t,lambda,mu,force)
         M(dofs,dofs)=M(dofs,dofs)+MK; % addieren zur Massenmatrix
         F(dofs)=F(dofs)+FK; % addieren zum load vector
     end
+
+
+% Um sicher zu stellen, dass die Steifigkeitsmatrix invertierbar ist,
+% benötigen wir Randbedingungen.
+
+%Beispielcode für enforced homogenen Dirichlet-Rand:
     
 %     bdry=unique([e(1,:) e(2,:)]); % boundary nodes
 %     fixed=[2*bdry-1 2*bdry]; % boundary degrees of freedom, DoFs
