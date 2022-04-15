@@ -130,6 +130,7 @@ function [K,M,F] = ElasticAssembler(p,e,t,lambda,mu,force)
     M=sparse(ndof,ndof); % allocate mass matrix
     F=zeros(ndof,1); % allocate load vector
     dofs=zeros(6,1); % allocate element degrees of freedom
+    
     for i=1:size(t,2) % assemly loop over elements
     nodes=t(1:3,i); % element nodes
     x=p(1,nodes); y=p(2,nodes); % node coordinates
@@ -143,6 +144,7 @@ function [K,M,F] = ElasticAssembler(p,e,t,lambda,mu,force)
     K(dofs,dofs)=K(dofs,dofs)+KK; % add to stiffness matrix
     M(dofs,dofs)=M(dofs,dofs)+MK; % add to mass matrix
     F(dofs)=F(dofs)+FK; % add to load vector
+    end
     
     bdry=unique([e(1,:) e(2,:)]); % boundary nodes
     fixed=[2*bdry-1 2*bdry]; % boundary degrees of freedom, DoFs
@@ -158,16 +160,52 @@ end
 
 
 function KK = ElasticStiffness(x,y,mu,lambda)
-    % triangle area and gradients (b,c) of hat functions
-    [area,b,c]=HatGradients(x,y);
-    % elastic matrix
-    D=mu*[2 0 0; 0 2 0; 0 0 1]+lambda*[1 1 0; 1 1 0; 0 0 0];
-    % strain matrix
-    BK=[b(1) 0 b(2) 0 b(3) 0 ;
-    0 c(1) 0 c(2) 0 c(3);
-    c(1) b(1) c(2) b(2) c(3) b(3)];
-    % element stiffness matrix
-    KK=BK'*D*BK*area;
+%     % triangle area and gradients (b,c) of hat functions
+%     [area,b,c]=HatGradients(x,y);
+%     % elastic matrix
+%     D=mu*[2 0 0; 0 2 0; 0 0 1]+lambda*[1 1 0; 1 1 0; 0 0 0];
+%     % strain matrix
+%     BK=[b(1) 0 b(2) 0 b(3) 0 ;
+%     0 c(1) 0 c(2) 0 c(3);
+%     c(1) b(1) c(2) b(2) c(3) b(3)];
+%     % element stiffness matrix
+%     KK=BK'*D*BK*area;
+
+for t=1:numEl %%TODO Variable numEl
+    [B_aL,d_aL] = affinLinAbb(x,y);
+    
+    B_aLinv=inv(B_aL);
+    absDetB=abs(det(B_aL));
+    
+%     K_T=zeros(numKnlok);
+%     b_T=zeros(numKnlok,1);
+%     
+%     for i=1:numKnlok
+%         for j=1:numKnlok
+%             %Elementsteifigkeitsmatrix
+%             for k=1:length(daten.quadratur_P2.gewichte)
+%                 wk=daten.quadratur_P2.gewichte(k);
+%                 xk=daten.quadratur_P2.knoten(k,:);
+%                 K_T(i,j)=K_T(i,j)+wk*absDetB*dot(Dphi_hat_p1{i}(xk)*Binv,Dphi_hat_p1{j}(xk)*Binv);
+%             end
+%         end
+%         %Elementlastvektor
+%         for k=1:length(daten.quadratur_P2.gewichte)
+%             wk=daten.quadratur_P2.gewichte(k);
+%             xk=daten.quadratur_P2.knoten(k,:);
+%             xk_T=B*xk'+d;
+%             b_T(i)=b_T(i)+wk*absDetB*dot(phi_hat_p1{i}(xk),f(xk_T));
+%         end
+%     end
+    
+    
+end
+
+
+
+D=mu*[2 0 0; 0 2 0; 0 0 1]+lambda*[1 1 0; 1 1 0; 0 0 0];
+KK=BK'*D*BK*area;
+
 end
 
 function MK = ElasticMass(x,y)
@@ -190,3 +228,16 @@ function f = Force(x,y)
     -25/26*(-1+2*y).*(-1+2*x)];
 end
 
+function [B_Al,d_Al] = affinLinAbb(x,y)
+
+B_Al=zeros(2);
+B_Al(1,1)=x(2)-x(1);
+B_Al(2,1)=y(2)-y(1);
+B_Al(1,2)=x(3)-x(1);
+B_Al(2,2)=y(3)-y(1);
+
+d_Al=zeros(2,1);
+d_Al(1)=x(1);
+d_Al(2)=y(1);
+
+end
