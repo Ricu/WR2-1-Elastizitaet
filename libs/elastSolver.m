@@ -26,6 +26,17 @@ function [K,M,F,K_dir,F_dir] = elastAssemble(p,t,lambda,mu,f,dirichlet,gD)
 % Output: K als global assemblierte Steifigkeitsmatrix
 % Output: M als global assemblierte Massenmatrix
 % Output: F als global assemblierter load vector
+
+% Load basic functions and quadrature data
+[~,d_phihat] = baseFun(1); %TODO: variable order, statt hard coding 1
+% if order == 1
+%     quad_low = load("quad_formeln.mat").quadratur_P1;
+%     quad_high = load("quad_formeln.mat").quadratur_P5;
+% elseif order == 2
+%     quad_low = load("quad_formeln.mat").quadratur_P2;
+%     quad_high = load("quad_formeln.mat").quadratur_P5;
+% end
+
 n_nodes = 2*size(p,2); % absolute Anzahl der Freiheitsgrade entspricht ...
 % der Anzahl an Knoten*2
 F=zeros(n_nodes,1); % initialisiere Ladungsvektor
@@ -46,7 +57,7 @@ for i=1:size(t,2) % Über die Elemente iterieren
     x=p(1,node_ind); y=p(2,node_ind); % Koordinaten der Knoten
     
     f_eval=f(x,y); % Volumenkraft an aktuellen Knoten auswerten
-    KK=elasticStiffness(x,y,lambda,mu); % lokale Steifigkeitsmatrix berechnen
+    KK=elasticStiffness(x,y,lambda,mu,d_phihat); % lokale Steifigkeitsmatrix berechnen
     MK=elasticMass(x,y); % lokale Massenmatrix berechnen
     fK=[f_eval(1,1) f_eval(2,1) f_eval(1,2) f_eval(2,2) f_eval(1,3) f_eval(2,3)]'; % Volumenkraft an den aktuellen Knoten bestimmen
     FK=MK*fK; % lokalen Lastsvektor bestimmen
@@ -83,19 +94,30 @@ K = K(~dirichlet,~dirichlet); % Dirichletknoten aus der Steifigkeitsmatrix elimi
 end
 
 
-function KK = elasticStiffness(x,y,mu,lambda)
+function KK = elasticStiffness(x,y,mu,lambda,d_phihat)
 % Input: x und y Koordinaten eines Elements
 % Input: Lame Parameter mu und lambda
 
 % Output: Lokale Steifigkeitsmatrix
 
-[area,b,c]=hatGradients(x,y); % Fläche des Elements und Gradienten der Basisfkt. bestimmen
+% [area,b,c]=hatGradients(x,y); % Fläche des Elements und Gradienten der Basisfkt. bestimmen
+% D=mu*[2 0 0; 0 2 0; 0 0 1]+lambda*[1 1 0; 1 1 0; 0 0 0]; % Elastizität Matrix aufstellen
+% % Spannungsmatrix aufstellen
+% BK=[b(1) 0 b(2) 0 b(3) 0 ;
+%     0 c(1) 0 c(2) 0 c(3);
+%     c(1) b(1) c(2) b(2) c(3) b(3)];
+% KK=BK'*D*BK*area; % Lokale Steifigkeitsmatrix bestimmen
+
+
+[area,phi_jacobi]=hatGradients(x,y,d_phihat); % Fläche des Elements und Jacobi-Matix der Basisfkt. bestimmen
 D=mu*[2 0 0; 0 2 0; 0 0 1]+lambda*[1 1 0; 1 1 0; 0 0 0]; % Elastizität Matrix aufstellen
-% Spannungsmatrix aufstellen
-BK=[b(1) 0 b(2) 0 b(3) 0 ;
-    0 c(1) 0 c(2) 0 c(3);
-    c(1) b(1) c(2) b(2) c(3) b(3)];
+% Verzerrungsmatrix aufstellen %TODO: kein hard-coding?
+BK=[phi_jacobi(1,1),0,              phi_jacobi(2,1),0,              phi_jacobi(3,1),0;
+   0,              phi_jacobi(1,2),0,              phi_jacobi(2,2),0,              phi_jacobi(3,2);
+   phi_jacobi(1,2),phi_jacobi(1,1),phi_jacobi(2,2),phi_jacobi(2,1),phi_jacobi(3,2),phi_jacobi(3,1)];
+%fuer konstante Gradienten TODO: fuer nicht konstante anpassen
 KK=BK'*D*BK*area; % Lokale Steifigkeitsmatrix bestimmen
+
 end
 
 function MK = elasticMass(x,y)
@@ -118,11 +140,40 @@ mu=E/(2*(1+nu)); % Mu berechnen
 lambda=E*nu/((1+nu)*(1-2*nu)); % Lambda berechnen
 end
 
-function [area,b,c] = hatGradients(x,y)
+% function [area,b,c] = hatGradients(x,y)
+% % Input: x und y Koordinaten eines Elements
+% 
+% % Output: ...
+% area=polyarea(x,y); % Fläche mittels polyarea bestimmen
+% b=[y(2)-y(3); y(3)-y(1); y(1)-y(2)]/2/area; % Gradient bestimmen
+% c=[x(3)-x(2); x(1)-x(3); x(2)-x(1)]/2/area; % Gradient bestimmen
+% end
+
+function [area,phi_jacobi] = hatGradients(x,y,d_phihat)
 % Input: x und y Koordinaten eines Elements
 
 % Output: ...
 area=polyarea(x,y); % Fläche mittels polyarea bestimmen
-b=[y(2)-y(3); y(3)-y(1); y(1)-y(2)]/2/area; % Gradient bestimmen
-c=[x(3)-x(2); x(1)-x(3); x(2)-x(1)]/2/area; % Gradient bestimmen
+
+%Affin lineare Abbildung
+[B_affmap,d_affmap] = aff_map(x,y);
+%detB_affmap = abs(det(B_affmap));
+InvB_affmap = B_affmap\eye(size(B_affmap));
+
+phi_jacobi=zeros(length(x),2);
+for i=1:length(x)
+    %TODO: hier erstmal funktionsauswertungen egal, da konstante gradienten
+    phi_jacobi(i,:)=[d_phihat{1,i}(x,y), d_phihat{2,i}(x,y)]*InvB_affmap;
+end
+
+end
+
+%% Affine mapping function
+function [B_affmap,d_affmap] = aff_map(x,y)
+a1 = [x(1);y(1)];
+a2 = [x(2);y(2)];
+a3 = [x(3);y(3)];
+
+d_affmap = a1;
+B_affmap = [a2-a1 , a3-a1];
 end
