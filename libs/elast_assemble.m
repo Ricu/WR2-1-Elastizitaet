@@ -227,16 +227,3 @@ function f = Force(x,y)
     -25/26*(-1+2*y).*(-1+2*x)];
 end
 
-function [B_Al,d_Al] = affinLinAbb(x,y)
-
-B_Al=zeros(2);
-B_Al(1,1)=x(2)-x(1);
-B_Al(2,1)=y(2)-y(1);
-B_Al(1,2)=x(3)-x(1);
-B_Al(2,2)=y(3)-y(1);
-
-d_Al=zeros(2,1);
-d_Al(1)=x(1);
-d_Al(2)=y(1);
-
-end
