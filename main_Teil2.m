@@ -37,8 +37,9 @@ grid = struct("vert",vert,"tri",tri,"dirichlet",dirichlet); % Gitter in eine Str
 E = 210; nu = 0.3; % Materialparameter
 f = @(x,y) [ones(size(x));ones(size(y))]; % Volumenkraft
 gD = @(x) 0*x; % Dirichlet-Randwertfunktion
+order=1;    %Grad der Basisfunktionen festlegen
 
-[U,V] = elastSolver(grid,E,nu,f,gD); % Problem loesen
+[U,V] = elastSolver(grid,E,nu,f,gD,order); % Problem loesen
 
 figure() % Neues Fenster erzeugen
 subplot(1,2,1), trisurf(tri,vert(:,1),vert(:,2),U), title("(u_h)_1") % Loesung in x_1 Richtung plotten
