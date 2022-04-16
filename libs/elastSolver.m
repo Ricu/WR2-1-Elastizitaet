@@ -31,10 +31,10 @@ function [K,M,F,K_dir,F_dir] = elastAssemble(p,t,lambda,mu,f,dirichlet,gD,order)
 [phihat,d_phihat] = baseFun(order); %TODO: variable order, statt hard coding 1
 if order == 1
     quad_low = load("quad_formeln.mat").quadratur_P1;
-    quad_high = load("quad_formeln.mat").quadratur_P5;
+    %quad_high = load("quad_formeln.mat").quadratur_P5;
 elseif order == 2
     quad_low = load("quad_formeln.mat").quadratur_P2;
-    quad_high = load("quad_formeln.mat").quadratur_P5;
+    %quad_high = load("quad_formeln.mat").quadratur_P5;
 end
 
 n_nodes = 2*size(p,2); % absolute Anzahl der Freiheitsgrade entspricht ...
@@ -51,15 +51,22 @@ M_val = K_val;
 iIndex = K_val;
 jIndex = K_val;
 
-node_ind2=zeros(6,1); % Initialisiere Vektor, in dem die Knotenindizes gespeichert werden
+node_ind2=zeros(nBaseFun,1); % Initialisiere Vektor, in dem die Knotenindizes gespeichert werden
 for i=1:size(t,2) % Über die Elemente iterieren
-    node_ind=t(1:3,i); % die zum aktuellen Element gehörenden physikalischen Knoten Indizes
+    node_ind=t(1:nBaseFun/2,i); % die zum aktuellen Element gehörenden physikalischen Knoten Indizes
     x=p(1,node_ind); y=p(2,node_ind); % Koordinaten der Knoten
     
     f_eval=f(x,y); % Volumenkraft an aktuellen Knoten auswerten
     KK=elasticStiffness(x,y,lambda,mu,d_phihat,quad_low,nBaseFun); % lokale Steifigkeitsmatrix berechnen
     MK=elasticMass(x,y); % lokale Massenmatrix berechnen
-    fK=[f_eval(1,1) f_eval(2,1) f_eval(1,2) f_eval(2,2) f_eval(1,3) f_eval(2,3)]'; % Volumenkraft an den aktuellen Knoten bestimmen
+    %fK=[f_eval(1,1) f_eval(2,1) f_eval(1,2) f_eval(2,2) f_eval(1,3) f_eval(2,3)]'; % Volumenkraft an den aktuellen Knoten bestimmen
+    fK=zeros(nBaseFun,1);
+    counter=1;
+    for k=1:2:nBaseFun
+        fK(k)=f_eval(1,counter); 
+        fK(k+1)=f_eval(2,counter);
+        counter=counter+1;
+    end
     FK=MK*fK; % lokalen Lastsvektor bestimmen
     
     % Assembliere durch addieren der lokalen Matrizen an die richtigen
@@ -129,10 +136,16 @@ for i=1:nBaseFun
 end
 
 % Verzerrungsmatrix aufstellen
-BKhat=@(x,y)[phihat_jacobi{1,1}(x,y),0,                      phihat_jacobi{2,1}(x,y),0,                      phihat_jacobi{3,1}(x,y),0;
+%TODO: Kein hard coding
+if nBaseFun==6
+    BKhat=@(x,y)[phihat_jacobi{1,1}(x,y),0,                      phihat_jacobi{2,1}(x,y),0,                      phihat_jacobi{3,1}(x,y),0;
              0,                      phihat_jacobi{1,2}(x,y),0,                      phihat_jacobi{2,2}(x,y),0,                      phihat_jacobi{3,2}(x,y);
              phihat_jacobi{1,2}(x,y),phihat_jacobi{1,1}(x,y),phihat_jacobi{2,2}(x,y),phihat_jacobi{2,1}(x,y),phihat_jacobi{3,2}(x,y),phihat_jacobi{3,1}(x,y)];
-
+else %nBaseFun==12
+    BKhat=@(x,y)[phihat_jacobi{1,1}(x,y),0,                      phihat_jacobi{2,1}(x,y),0,                      phihat_jacobi{3,1}(x,y),0,phihat_jacobi{4,1}(x,y),0,phihat_jacobi{5,1}(x,y),0,phihat_jacobi{6,1}(x,y),0;
+             0,                      phihat_jacobi{1,2}(x,y),0,                      phihat_jacobi{2,2}(x,y),0,                      phihat_jacobi{3,2}(x,y),0,                      phihat_jacobi{4,2}(x,y),0,                      phihat_jacobi{5,2}(x,y),0,                      phihat_jacobi{6,2}(x,y);
+             phihat_jacobi{1,2}(x,y),phihat_jacobi{1,1}(x,y),phihat_jacobi{2,2}(x,y),phihat_jacobi{2,1}(x,y),phihat_jacobi{3,2}(x,y),phihat_jacobi{3,1}(x,y),phihat_jacobi{4,2}(x,y),phihat_jacobi{4,1}(x,y),phihat_jacobi{5,2}(x,y),phihat_jacobi{5,1}(x,y),phihat_jacobi{6,2}(x,y),phihat_jacobi{6,1}(x,y)];
+end
 %Knoten der Quadraturformel
 xhat_quad = quad_low.knoten(:,1); 
 yhat_quad = quad_low.knoten(:,2);
@@ -140,7 +153,7 @@ yhat_quad = quad_low.knoten(:,2);
 KK=zeros(nBaseFun);
 for i=1:length(xhat_quad)
     temp=BKhat(xhat_quad(i),yhat_quad(i))'*D*BKhat(xhat_quad(i),yhat_quad(i));
-    KK = KK + detB_affmap* quad_low.gewichte .* temp;
+    KK = KK + detB_affmap* quad_low.gewichte(i) .* temp;
 end
 end
 
