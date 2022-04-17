@@ -17,6 +17,7 @@ grid = struct("vert",vert,"tri",tri,"dirichlet",dirichlet); % Gitter in eine Str
 E = 210; nu = 0.3; % Materialparameter
 f = @(x,y) [ones(size(x));ones(size(y))]; % Volumenkraft
 gD = @(x) 0*x; % Dirichlet-Randwertfunktion, x=[x_1;x_2]
+order=2;    %Grad der Basisfunktionen festlegen
 
 % func = @() elastSolver(grid,E,nu,f,gD);
 % fprintf("%15s: Benoetigte Zeit fuer 1/h = %i: %fs\n", "Optimiert",h, timeit(func))
@@ -24,7 +25,7 @@ gD = @(x) 0*x; % Dirichlet-Randwertfunktion, x=[x_1;x_2]
 % func = @() elastSolver2(grid,E,nu,f,gD);
 % fprintf("%15s: Benoetigte Zeit fuer 1/h = %i: %fs\n", "Nicht Optimiert",h, timeit(func))
 
-[U,V] = elastSolver(grid,E,nu,f,gD); % Problem loesen
+[U,V] = elastSolver(grid,E,nu,f,gD,order); % Problem loesen
 
 %% Loesung plotten
 figure() % Neues Fenster erzeugen %TODO Vale: Fenstertitel
