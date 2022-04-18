@@ -162,8 +162,8 @@ end
 function KK = ElasticStiffness(x,y,mu,lambda)
 %     % triangle area and gradients (b,c) of hat functions
 %     [area,b,c]=HatGradients(x,y);
-%     % elastic matrix
-%     D=mu*[2 0 0; 0 2 0; 0 0 1]+lambda*[1 1 0; 1 1 0; 0 0 0];
+     % elastic matrix
+     D=mu*[2 0 0; 0 2 0; 0 0 1]+lambda*[1 1 0; 1 1 0; 0 0 0];
 %     % strain matrix
 %     BK=[b(1) 0 b(2) 0 b(3) 0 ;
 %     0 c(1) 0 c(2) 0 c(3);
@@ -171,9 +171,8 @@ function KK = ElasticStiffness(x,y,mu,lambda)
 %     % element stiffness matrix
 %     KK=BK'*D*BK*area;
 
-for t=1:numEl %%TODO Variable numEl
+% for t=1:numEl %%TODO Variable numEl
     [B_aL,d_aL] = affinLinAbb(x,y);
-    
     B_aLinv=inv(B_aL);
     absDetB=abs(det(B_aL));
     
