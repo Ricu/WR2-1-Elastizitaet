@@ -3,6 +3,7 @@ if ~(exist('fig','var')) || isempty(fig)
     fig = figure("Name","Gebietsvergleich: vor und nach Deformierung",'NumberTitle','off');
     t = tiledlayout(1,nComparisons);
 else
+    figure(fig)
     t = get(fig,'children'); % Extrahiere das TiledLayoutObject unter der Annahme, das alle Plots mit diesem erstellt wurden
 end
 
