@@ -25,39 +25,24 @@ distmesh2d(@dpoly,@huniform,6,[0,0; 24,30],true,pv,pv); % Gitter erzeugen %Verus
 
 %% Dirichletknoten hinzufuegen und plotten
 dirichlet = (vert(:,1) == -0.4); % Dirichletrand, logischer Vektor
-figure() % Neues Fenster erzeugen
-patch('vertices',vert,'faces',tri,'edgecol','k','facecol',[.8,.9,1]); % Triangulierung plotten
-hold on; 
-scatter(vert(dirichlet,1),vert(dirichlet,2),[],"r") % Dirichletknoten markieren
-legend("Triangulierung","Dirichletrand Knoten") % Legende hinzufuegen
 grid = struct("vert",vert,"tri",tri,"dirichlet",dirichlet); % Gitter in eine Struktur bringen. 
 % Macht die uebergabe einfacher und dient als logische Einheit
+plotGridDirichlet(grid,1,[],"Triangulierung der Ordnung 1");
 
 %% Testen
 E = 210; nu = 0.3; % Materialparameter
 f = @(x,y) [ones(size(x));ones(size(y))]; % Volumenkraft
 gD = @(x) 0*x; % Dirichlet-Randwertfunktion
-order=1;    %Grad der Basisfunktionen festlegen
+order = 1;    %Grad der Basisfunktionen festlegen
 
 [U,V] = elastSolver(grid,E,nu,f,gD,order); % Problem loesen
 
-figure() % Neues Fenster erzeugen
-subplot(1,2,1), trisurf(tri,vert(:,1),vert(:,2),U), title("(u_h)_1") % Loesung in x_1 Richtung plotten
-subplot(1,2,2), trisurf(tri,vert(:,1),vert(:,2),V), title("(u_h)_2") % Loesung in x_2 Richtung plotten
+figSolution = plotVectorfieldSolution(vert,tri,U,V,1);
 
 %% Deformierte Flaeche darstellen
 deformed_area = vert; % Deformierte Liste initialisieren
 deformed_area(:,1) = deformed_area(:,1) + U; % Deformierung in x_1 Richtung
 deformed_area(:,2) = deformed_area(:,2) + V; % Deformierung in x_2 Richtung
 
-figure() % Neues Fenster erzeugen
-scatter(vert(:,1),vert(:,2),'k','filled'); hold on; % Urspruengliche Flaeche plotten
-scatter(deformed_area(:,1),deformed_area(:,2),46); % Deformierte Flaeche plotten
-quiver(vert(:,1),vert(:,2),U,V,0) % Berechnetes Vektorfeld (Verschiebung) plotten
-legend("Original","Deformiert","Verschiebung") % Legende hinzufuegen
-
-figure()
-subplot(1,2,1); patch('vertices',vert,'faces',tri,'edgecol','k','facecol',[.8,.9,1]);
-axis equal tight; title("Urspruengliches Gebiet")
-subplot(1,2,2); patch('vertices',deformed_area,'faces',tri,'edgecol','k','facecol',[.8,.9,1]);
-axis equal tight; title("Deformiertes Gebiet")
+plotDeformationVectors(vert,deformed_area,U,V,1);
+plotDeformationPolygons(tri,vert,deformed_area,1);

@@ -3,7 +3,6 @@ addpath('libs') % Hilfsfunktionen laden
 %% Mesh
 h = 1/16;
 [vert,tri] = genMeshSquare(1,1/h); % TODO val Punkte und Dreiecke erstellen
-[vert,tri] = extendGridLagr(vert,tri,2);
 dirichlet = (vert(:,1) == 0); % Dirichletrand, logischer Vektor
 grid = struct("vert",vert,"tri",tri,"dirichlet",dirichlet); % Gitter in eine Structure  bringen. 
 % Macht die uebergabe einfacher und dient als logische Einheit
@@ -13,7 +12,7 @@ plotGridDirichlet(grid,1,[],"Triangulierung der Ordnung 1");
 E = 210; nu = 0.3; % Materialparameter
 f = @(x,y) [ones(size(x));ones(size(y))]; % Volumenkraft
 gD = @(x) 0*x; % Dirichlet-Randwertfunktion, x=[x_1;x_2]
-order=1;    %Grad der Basisfunktionen festlegen
+order = 1;    %Grad der Basisfunktionen festlegen
 
 
 [U,V] = elastSolver(grid,E,nu,f,gD,order); % Problem loesen
@@ -26,6 +25,5 @@ deformed_area = vert; % Deformierte Liste initialisieren
 deformed_area(:,1) = deformed_area(:,1) + U; % Deformierung in x_1 Richtung
 deformed_area(:,2) = deformed_area(:,2) + V; % Deformierung in x_2 Richtung
 
-plotDeformationVectors(vert,deformed_area,U,V,1)
-
-plotDeformationPolygons(vert,deformed_area,1)
+plotDeformationVectors(vert,deformed_area,U,V,1);
+plotDeformationPolygons(tri,vert,deformed_area,1);
