@@ -6,12 +6,13 @@ h = 1/16;
 [vert2,tri2] = extendGridLagr(vert1,tri1,2);
 dirichlet1 = (vert1(:,1) == 0); % Dirichletrand, logischer Vektor
 dirichlet2 = (vert2(:,1) == 0);
-
-figGrid = plotGridDirichlet(vert1,tri1,dirichlet1,2);
-figGrid = plotGridDirichlet(vert2,tri2,dirichlet2,2,figGrid);
-
-grid = struct("vert",vert,"tri",tri,"dirichlet",dirichlet); % Gitter in eine Structure  bringen. 
+grid = struct("vert",vert1,"tri",tri1,"dirichlet",dirichlet1); % Gitter in eine Structure  bringen. 
 grid2 = struct("vert",vert2,"tri",tri2,"dirichlet",dirichlet2); % Gitter in eine Structure  bringen. 
+
+figGrid = plotGridDirichlet(grid,2,[],"Triangulierung der Ordnung 1");
+figGrid = plotGridDirichlet(grid2,2,figGrid,"Triangulierung der Ordnung 2");
+
+
 % Macht die uebergabe einfacher und dient als logische Einheit
 
 %% PDE aus Teil 1
