@@ -55,19 +55,17 @@ node_ind2=zeros(nBaseFun,1); % Initialisiere Vektor, in dem die Knotenindizes ge
 for i=1:size(t,2) % Über die Elemente iterieren
     node_ind=t(1:nBaseFun/2,i); % die zum aktuellen Element gehörenden physikalischen Knoten Indizes
     x=p(1,node_ind); y=p(2,node_ind); % Koordinaten der Knoten
+       
+    %Affin lineare Abbildung
+    [B_affmap,d_affmap] = aff_map(x,y);
+    detB_affmap = abs(det(B_affmap));
+    InvB_affmap = B_affmap\eye(size(B_affmap));
     
-    f_eval=f(x,y); % Volumenkraft an aktuellen Knoten auswerten
-    KK=elasticStiffness(x,y,lambda,mu,d_phihat,quad_low,nBaseFun); % lokale Steifigkeitsmatrix berechnen
-    MK=elasticMass(x,y); % lokale Massenmatrix berechnen
+    KK=elasticStiffness(lambda,mu,d_phihat,quad_low,nBaseFun,InvB_affmap,detB_affmap); % lokale Steifigkeitsmatrix berechnen
     %fK=[f_eval(1,1) f_eval(2,1) f_eval(1,2) f_eval(2,2) f_eval(1,3) f_eval(2,3)]'; % Volumenkraft an den aktuellen Knoten bestimmen
-    fK=zeros(nBaseFun,1);
-    counter=1;
-    for k=1:2:nBaseFun
-        fK(k)=f_eval(1,counter); 
-        fK(k+1)=f_eval(2,counter);
-        counter=counter+1;
-    end
-    FK=MK*fK; % lokalen Lastsvektor bestimmen
+    
+    FK=elasticMass(phihat,f,B_affmap,d_affmap,detB_affmap,nBaseFun,quad_low); % lokale Massenmatrix berechnen
+     % lokalen Lastsvektor bestimmen
     
     % Assembliere durch addieren der lokalen Matrizen an die richtigen
     % Stellen der globalen Matrizen
@@ -100,7 +98,7 @@ K = K(~dirichlet,~dirichlet); % Dirichletknoten aus der Steifigkeitsmatrix elimi
 end
 
 
-function KK = elasticStiffness(x,y,mu,lambda,d_phihat,quad_low,nBaseFun)
+function KK = elasticStiffness(mu,lambda,d_phihat,quad_low,nBaseFun,InvB_affmap,detB_affmap)
 % Input: x und y Koordinaten eines Elements
 % Input: Lame Parameter mu und lambda
 
@@ -115,10 +113,6 @@ function KK = elasticStiffness(x,y,mu,lambda,d_phihat,quad_low,nBaseFun)
 % KK=BK'*D*BK*area; % Lokale Steifigkeitsmatrix bestimmen
 
 D=mu*[2 0 0; 0 2 0; 0 0 1]+lambda*[1 1 0; 1 1 0; 0 0 0]; % Elastizität Matrix aufstellen
-
-[B_affmap,~] = aff_map(x,y); %Affin lineare Abbildung
-detB_affmap = abs(det(B_affmap));
-InvB_affmap = B_affmap\eye(size(B_affmap));
 
 %fuer konstante Gradienten
 %[~,phi_jacobi]=hatGradients(x,y,d_phihat,InvB_affmap); % Fläche des Elements und Jacobi-Matix der Basisfkt. bestimmen
@@ -157,15 +151,56 @@ for i=1:length(xhat_quad)
 end
 end
 
-function MK = elasticMass(x,y)
-area=polyarea(x,y); % Fläche mittels polyarea bestimmen
+function FK = elasticMass(phihat,f,B_affmap,d_affmap,detB_affmap,nBaseFun,quad_low)
+%area=polyarea(x,y); % Fläche mittels polyarea bestimmen
 % lokale Massenmatrix bestimmen
-MK=[2 0 1 0 1 0;
-    0 2 0 1 0 1;
-    1 0 2 0 1 0;
-    0 1 0 2 0 1;
-    1 0 1 0 2 0;
-    0 1 0 1 0 2]*area/12;
+% MK=[2 0 1 0 1 0;
+%     0 2 0 1 0 1;
+%     1 0 2 0 1 0;
+%     0 1 0 2 0 1;
+%     1 0 1 0 2 0;
+%     0 1 0 1 0 2]*area/12;
+
+if nBaseFun==6
+    phihat_mat=@(x,y)[phihat{1}(x,y),0;
+                      0,phihat{1}(x,y);
+                      phihat{2}(x,y),0;
+                      0,phihat{2}(x,y);
+                      phihat{3}(x,y),0;
+                      0,phihat{3}(x,y)];
+else %nBaseFun==12
+    phihat_mat=@(x,y)[phihat{1}(x,y),0;
+                      0,phihat{1}(x,y);
+                      phihat{2}(x,y),0;
+                      0,phihat{2}(x,y);
+                      phihat{3}(x,y),0;
+                      0,phihat{3}(x,y);
+                      phihat{4}(x,y),0;
+                      0,phihat{4}(x,y);
+                      phihat{5}(x,y),0;
+                      0,phihat{5}(x,y);
+                      phihat{6}(x,y),0;
+                      0,phihat{6}(x,y);];
+end
+
+%Knoten der Quadraturformel
+xhat_quad = quad_low.knoten(:,1); 
+yhat_quad = quad_low.knoten(:,2);
+
+nVertQuad=length(xhat_quad);
+
+x_quad=zeros(nVertQuad,1);
+y_quad=zeros(nVertQuad,1);
+for i=1:nVertQuad
+    x_quad(i)=B_affmap(1,:)*[xhat_quad(i);yhat_quad(i)]+d_affmap(1);
+    y_quad(i)=B_affmap(2,:)*[xhat_quad(i);yhat_quad(i)]+d_affmap(2);
+end
+
+FK=zeros(nBaseFun,1);
+for i=1:length(xhat_quad)    
+    temp=phihat_mat(xhat_quad(i),yhat_quad(i))*f(x_quad(i),y_quad(i));
+    FK = FK + detB_affmap* quad_low.gewichte(i) .* temp;
+end
 end
 
 function [mu,lambda] = enu2lame(E,nu)
