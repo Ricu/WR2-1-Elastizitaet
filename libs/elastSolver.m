@@ -11,23 +11,23 @@ dirichlet2(ind) = true; % Dirichletknoten markieren
 [K,~,F] = elastAssemble(vert',tri',mu,lambda,f,dirichlet2,gD,order); % Assemblierungsroutine aufrufen
 
 
-d = zeros(length(F),1); % Lösungsvektor initialisieren
-d(dirichlet2) = gD(vert(dirichlet2)); % Dirichletwerte eintrage
-d(~dirichlet2) = K\F; % Galerkin System lösen
-U = d(1:2:end); % Lösung in x_1 Richtung extrahieren
-V = d(2:2:end); % Lösung in x_2 Richtung extrahieren
+d = zeros(length(F),1); % Loesungsvektor initialisieren
+d(dirichlet2) = gD(vert(dirichlet2)); % Dirichletwerte eintragen
+d(~dirichlet2) = K\F; % Galerkin-System loesen
+U = d(1:2:end); % Loesung in x_1 Richtung extrahieren
+V = d(2:2:end); % Loesung in x_2 Richtung extrahieren
 end
 
 function [K,M,F,K_dir,F_dir] = elastAssemble(p,t,lambda,mu,f,dirichlet,gD,order)
-% Input: p als matrix mit allen Knoten
-% Input: e als matrix mit allen Kanten
-% Input: t als matrix mit allen Verbindungen der Trainagulierung
+% Input: p als Matrix mit allen Knoten
+% Input: e als Matrix mit allen Kanten
+% Input: t als Matrix mit allen Verbindungen der Trainagulierung
 
 % Output: K als global assemblierte Steifigkeitsmatrix
 % Output: M als global assemblierte Massenmatrix
 % Output: F als global assemblierter load vector
 
-% Load basic functions and quadrature data
+% Laden der Basisfunktionen und Quadraturformeln
 [phihat,d_phihat] = baseFun(order); %TODO: variable order, statt hard coding 1
 if order == 1
     quad_low = load("quad_formeln.mat").quadratur_P1;
@@ -37,12 +37,12 @@ elseif order == 2
     %quad_high = load("quad_formeln.mat").quadratur_P5;
 end
 
-n_nodes = 2*size(p,2); % absolute Anzahl der Freiheitsgrade entspricht ...
-% der Anzahl an Knoten*2
-F=zeros(n_nodes,1); % initialisiere Ladungsvektor
+n_nodes = 2*size(p,2); % absolute Anzahl der Freiheitsgrade entspricht der
+% Anzahl an Knoten*2
+F=zeros(n_nodes,1); % initialisiere load vector
 
-% Matrizen vorbereiten, in die die Index-Wertepaare für K&M gespeichert
-% werden
+% Matrizen vorbereiten, in den die Index-Wertepaare fuer Steifigkeits- und 
+% Massenmatrix gespeichert werden
 nBaseFun = 2*length(phihat); % Anzahl Basisfunktion für Order = 1: 6
 % Anzahl Basisfunktion für Order (Lagrange) = k: (k+2)*(k+1);
 nEleLoc = nBaseFun^2; % Anzahl Elemente der lokalen Steifigkeitsmatrix
@@ -52,8 +52,8 @@ iIndex = K_val;
 jIndex = K_val;
 
 node_ind2=zeros(nBaseFun,1); % Initialisiere Vektor, in dem die Knotenindizes gespeichert werden
-for i=1:size(t,2) % Über die Elemente iterieren
-    node_ind=t(1:nBaseFun/2,i); % die zum aktuellen Element gehörenden physikalischen Knoten Indizes
+for i=1:size(t,2) % ueber die Elemente iterieren
+    node_ind=t(1:nBaseFun/2,i); % die zum aktuellen Element gehoerenden physikalischen Knoten Indizes
     x=p(1,node_ind); y=p(2,node_ind); % Koordinaten der Knoten
     
     f_eval=f(x,y); % Volumenkraft an aktuellen Knoten auswerten
@@ -85,7 +85,7 @@ M = sparse(iIndex,jIndex,M_val,n_nodes,n_nodes); % Anhand der zuvor erstellten L
 
 
 K_dir = K; % Speichere die Steifigkeitsmatrix inklusive der Dirichletknoten
-F_dir = F - K(:,dirichlet)* gD(p(dirichlet)); % Speichere den Lastvektor inklusive der Dirichletknoten %TODO nicht _full nennen
+F_dir = F - K(:,dirichlet)* gD(p(dirichlet)); % Speichere den Lastvektor inklusive der Dirichletknoten
 
 double_points = zeros(2,2*length(p));
 double_points(2:2:end) = p; % TODO Vale: doppelte punkte bessser abspeichern?
@@ -120,15 +120,15 @@ D=mu*[2 0 0; 0 2 0; 0 0 1]+lambda*[1 1 0; 1 1 0; 0 0 0]; % Elastizität Matrix a
 detB_affmap = abs(det(B_affmap));
 InvB_affmap = B_affmap\eye(size(B_affmap));
 
-%fuer konstante Gradienten
-%[~,phi_jacobi]=hatGradients(x,y,d_phihat,InvB_affmap); % Fläche des Elements und Jacobi-Matix der Basisfkt. bestimmen
+% fuer konstante Gradienten
+% [~,phi_jacobi]=hatGradients(x,y,d_phihat,InvB_affmap); % Flaeche des Elements und Jacobi-Matix der Basisfkt. bestimmen
 % BK=[phi_jacobi(1,1),0,              phi_jacobi(2,1),0,              phi_jacobi(3,1),0;
 %     0,              phi_jacobi(1,2),0,              phi_jacobi(2,2),0,              phi_jacobi(3,2);
 %     phi_jacobi(1,2),phi_jacobi(1,1),phi_jacobi(2,2),phi_jacobi(2,1),phi_jacobi(3,2),phi_jacobi(3,1)];
 
-%KK=BK'*D*BK*area; % Lokale Steifigkeitsmatrix bestimmen
+% KK=BK'*D*BK*area; % Lokale Steifigkeitsmatrix bestimmen
 
-%fuer hoeheren Grad: mit Quadraturformeln
+% fuer hoeheren Grad: mit Quadraturformeln
 phihat_jacobi=cell(nBaseFun,2);
 for i=1:nBaseFun
     phihat_jacobi{i,1}=@(x,y) [d_phihat{1,i}(x,y),d_phihat{2,i}(x,y)]*InvB_affmap(:,1);
@@ -141,12 +141,12 @@ if nBaseFun==6
     BKhat=@(x,y)[phihat_jacobi{1,1}(x,y),0,                      phihat_jacobi{2,1}(x,y),0,                      phihat_jacobi{3,1}(x,y),0;
              0,                      phihat_jacobi{1,2}(x,y),0,                      phihat_jacobi{2,2}(x,y),0,                      phihat_jacobi{3,2}(x,y);
              phihat_jacobi{1,2}(x,y),phihat_jacobi{1,1}(x,y),phihat_jacobi{2,2}(x,y),phihat_jacobi{2,1}(x,y),phihat_jacobi{3,2}(x,y),phihat_jacobi{3,1}(x,y)];
-else %nBaseFun==12
+else % nBaseFun==12
     BKhat=@(x,y)[phihat_jacobi{1,1}(x,y),0,                      phihat_jacobi{2,1}(x,y),0,                      phihat_jacobi{3,1}(x,y),0,phihat_jacobi{4,1}(x,y),0,phihat_jacobi{5,1}(x,y),0,phihat_jacobi{6,1}(x,y),0;
              0,                      phihat_jacobi{1,2}(x,y),0,                      phihat_jacobi{2,2}(x,y),0,                      phihat_jacobi{3,2}(x,y),0,                      phihat_jacobi{4,2}(x,y),0,                      phihat_jacobi{5,2}(x,y),0,                      phihat_jacobi{6,2}(x,y);
              phihat_jacobi{1,2}(x,y),phihat_jacobi{1,1}(x,y),phihat_jacobi{2,2}(x,y),phihat_jacobi{2,1}(x,y),phihat_jacobi{3,2}(x,y),phihat_jacobi{3,1}(x,y),phihat_jacobi{4,2}(x,y),phihat_jacobi{4,1}(x,y),phihat_jacobi{5,2}(x,y),phihat_jacobi{5,1}(x,y),phihat_jacobi{6,2}(x,y),phihat_jacobi{6,1}(x,y)];
 end
-%Knoten der Quadraturformel
+% Knoten der Quadraturformel
 xhat_quad = quad_low.knoten(:,1); 
 yhat_quad = quad_low.knoten(:,2);
 
@@ -158,7 +158,7 @@ end
 end
 
 function MK = elasticMass(x,y)
-area=polyarea(x,y); % Fläche mittels polyarea bestimmen
+area=polyarea(x,y); % Flaeche mittels polyarea bestimmen
 % lokale Massenmatrix bestimmen
 MK=[2 0 1 0 1 0;
     0 2 0 1 0 1;

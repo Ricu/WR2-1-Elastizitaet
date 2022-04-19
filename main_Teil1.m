@@ -10,14 +10,14 @@ patch('vertices',vert,'faces',tri,'edgecol','k','facecol',[.8,.9,1]); % Triangul
 hold on; 
 scatter(vert(dirichlet,1),vert(dirichlet,2),[],"r") % Dirichletknoten markieren
 legend("Triangulierung","Dirichletrand Knoten") % Legende hinzufuegen
-grid = struct("vert",vert,"tri",tri,"dirichlet",dirichlet); % Gitter in eine Structure  bringen. 
-% Macht die uebergabe einfacher und dient als logische Einheit
+grid = struct("vert",vert,"tri",tri,"dirichlet",dirichlet); % Gitter in ein Structure bringen. 
+% Macht die Uebergabe einfacher und dient als logische Einheit
 
 %% PDE 
 E = 210; nu = 0.3; % Materialparameter
 f = @(x,y) [ones(size(x));ones(size(y))]; % Volumenkraft
 gD = @(x) 0*x; % Dirichlet-Randwertfunktion, x=[x_1;x_2]
-order=1;    %Grad der Basisfunktionen festlegen
+order=1;    % Ordnung der Basisfunktionen festlegen
 
 % func = @() elastSolver(grid,E,nu,f,gD);
 % fprintf("%15s: Benoetigte Zeit fuer 1/h = %i: %fs\n", "Optimiert",h, timeit(func))
