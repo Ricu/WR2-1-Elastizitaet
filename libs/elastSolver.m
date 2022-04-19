@@ -8,7 +8,7 @@ dirichlet2 = false(2*length(vert),1); % Neuen logischen Vektor erstellen
 dirichlet2(ind) = true; % Dirichletknoten markieren
 
 [mu,lambda]=enu2lame(E,nu); % Materialparameter extrahieren
-[K,~,F] = elastAssemble(vert',tri',mu,lambda,f,dirichlet2,gD,order); % Assemblierungsroutine aufrufen
+[K,F] = elastAssemble(vert',tri',mu,lambda,f,dirichlet2,gD,order); % Assemblierungsroutine aufrufen
 
 
 d = zeros(length(F),1); % Lösungsvektor initialisieren
@@ -18,7 +18,7 @@ U = d(1:2:end); % Lösung in x_1 Richtung extrahieren
 V = d(2:2:end); % Lösung in x_2 Richtung extrahieren
 end
 
-function [K,M,F,K_dir,F_dir] = elastAssemble(p,t,lambda,mu,f,dirichlet,gD,order)
+function [K,F,K_dir,F_dir] = elastAssemble(p,t,lambda,mu,f,dirichlet,gD,order)
 % Input: p als matrix mit allen Knoten
 % Input: e als matrix mit allen Kanten
 % Input: t als matrix mit allen Verbindungen der Trainagulierung
@@ -47,7 +47,7 @@ nBaseFun = 2*length(phihat); % Anzahl Basisfunktion für Order = 1: 6
 % Anzahl Basisfunktion für Order (Lagrange) = k: (k+2)*(k+1);
 nEleLoc = nBaseFun^2; % Anzahl Elemente der lokalen Steifigkeitsmatrix
 K_val = zeros(nEleLoc*length(t),1);
-M_val = K_val;
+%M_val = K_val;
 iIndex = K_val;
 jIndex = K_val;
 
@@ -77,11 +77,11 @@ for i=1:size(t,2) % Über die Elemente iterieren
     iIndex((i-1)*nEleLoc+1:i*nEleLoc) = reshape(repmat(node_ind2',nBaseFun,1),nEleLoc,1); % i-Indizes speichern
     jIndex((i-1)*nEleLoc+1:i*nEleLoc) = repmat(node_ind2,nBaseFun,1); % j-Indizes speichern
     K_val((i-1)*nEleLoc+1:i*nEleLoc) = reshape(KK,nEleLoc,1); % Werte für die Steifigkeitsmatrix speichern
-    M_val((i-1)*nEleLoc+1:i*nEleLoc) = reshape(MK,nEleLoc,1); % Werte für die Massenmatrix speichern
+    %M_val((i-1)*nEleLoc+1:i*nEleLoc) = reshape(MK,nEleLoc,1); % Werte für die Massenmatrix speichern
     F(node_ind2) = F(node_ind2) + FK; % Der Lastvektor kann ohne Umwege aktualisiert werden
 end
 K = sparse(iIndex,jIndex,K_val,n_nodes,n_nodes); % Anhand der zuvor erstellten Listen die Steifigkeitsmatrix erstellen
-M = sparse(iIndex,jIndex,M_val,n_nodes,n_nodes); % Anhand der zuvor erstellten Listen die Massenmatrix erstellen
+%M = sparse(iIndex,jIndex,M_val,n_nodes,n_nodes); % Anhand der zuvor erstellten Listen die Massenmatrix erstellen
 
 
 K_dir = K; % Speichere die Steifigkeitsmatrix inklusive der Dirichletknoten
