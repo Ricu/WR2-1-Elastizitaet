@@ -1,6 +1,6 @@
 function [fig,t] = plotDeformationVectors(vert,defVert,U,V,nComparisons,fig)
 if ~(exist('fig','var')) || isempty(fig)
-    fig = figure();
+    fig = figure("Name","Gebietsvergleich: vor und nach Deformierung",'NumberTitle','off');
     t = tiledlayout(1,nComparisons);
 else
     t = get(fig,'children'); % Extrahiere das TiledLayoutObject unter der Annahme, das alle Plots mit diesem erstellt wurden
