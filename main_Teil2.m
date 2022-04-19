@@ -25,7 +25,7 @@ distmesh2d(@dpoly,@huniform,6,[0,0; 24,30],true,pv,pv); % Gitter erzeugen %Verus
 
 %% Dirichletknoten hinzufuegen und plotten
 dirichlet = (vert(:,1) == -0.4); % Dirichletrand, logischer Vektor
-figure() % Neues Fenster erzeugen
+figure('Name','Triangulierung') % Neues Fenster erzeugen
 patch('vertices',vert,'faces',tri,'edgecol','k','facecol',[.8,.9,1]); % Triangulierung plotten
 hold on; 
 scatter(vert(dirichlet,1),vert(dirichlet,2),[],"r") % Dirichletknoten markieren
@@ -41,23 +41,25 @@ order=1;    %Grad der Basisfunktionen festlegen
 
 [U,V] = elastSolver(grid,E,nu,f,gD,order); % Problem loesen
 
-figure() % Neues Fenster erzeugen
-subplot(1,2,1), trisurf(tri,vert(:,1),vert(:,2),U), title("(u_h)_1") % Loesung in x_1 Richtung plotten
-subplot(1,2,2), trisurf(tri,vert(:,1),vert(:,2),V), title("(u_h)_2") % Loesung in x_2 Richtung plotten
+figure('Name','Deformierung in x_1 und x_2 Richtung') % Neues Fenster erzeugen
+subplot(1,2,1), trisurf(tri,vert(:,1),vert(:,2),U), title("(u_h)_1: x_1 Richtung") % Loesung in x_1 Richtung plotten
+subplot(1,2,2), trisurf(tri,vert(:,1),vert(:,2),V), title("(u_h)_2: x_2 Richtung") % Loesung in x_2 Richtung plotten
 
 %% Deformierte Flaeche darstellen
 deformed_area = vert; % Deformierte Liste initialisieren
 deformed_area(:,1) = deformed_area(:,1) + U; % Deformierung in x_1 Richtung
 deformed_area(:,2) = deformed_area(:,2) + V; % Deformierung in x_2 Richtung
 
-figure() % Neues Fenster erzeugen
+figure('Name','Gebietsvergleich: vor und nach Deformierung') % Neues Fenster erzeugen
 scatter(vert(:,1),vert(:,2),'k','filled'); hold on; % Urspruengliche Flaeche plotten
 scatter(deformed_area(:,1),deformed_area(:,2),46); % Deformierte Flaeche plotten
 quiver(vert(:,1),vert(:,2),U,V,0) % Berechnetes Vektorfeld (Verschiebung) plotten
 legend("Original","Deformiert","Verschiebung") % Legende hinzufuegen
 
-figure()
+figure('Name','Gebietsvergleich: vor und nach Deformierung')
 subplot(1,2,1); patch('vertices',vert,'faces',tri,'edgecol','k','facecol',[.8,.9,1]);
+title('Urspruengliches Gebiet')
 axis equal tight; title("Urspruengliches Gebiet")
 subplot(1,2,2); patch('vertices',deformed_area,'faces',tri,'edgecol','k','facecol',[.8,.9,1]);
+title('Deformiertes Gebiet')
 axis equal tight; title("Deformiertes Gebiet")
