@@ -10,7 +10,7 @@ dirichlet2 = (vert2(:,1) == 0);
 figGrid = plotGridDirichlet(vert1,tri1,dirichlet1,2);
 figGrid = plotGridDirichlet(vert2,tri2,dirichlet2,2,figGrid);
 
-grid = struct("vert",vert,"tri",tri,"dirichlet",dirichlet); % Gitter in eine Structure  bringen. 
+grid = struct("vert",vert1,"tri",tri1,"dirichlet",dirichlet1); % Gitter in eine Structure  bringen. 
 grid2 = struct("vert",vert2,"tri",tri2,"dirichlet",dirichlet2); % Gitter in eine Structure  bringen. 
 % Macht die uebergabe einfacher und dient als logische Einheit
 
