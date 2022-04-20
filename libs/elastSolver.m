@@ -55,18 +55,16 @@ node_ind2=zeros(nBaseFun,1); % Initialisiere Vektor, in dem die Knotenindizes ge
 for i=1:size(t,2) % ueber die Elemente iterieren
     node_ind=t(1:nBaseFun/2,i); % die zum aktuellen Element gehoerenden physikalischen Knoten Indizes
     x=p(1,node_ind); y=p(2,node_ind); % Koordinaten der Knoten
+       
+    %Affin lineare Abbildung
+    [B_affmap,d_affmap] = aff_map(x,y);
+    detB_affmap = abs(det(B_affmap));
+    InvB_affmap = B_affmap\eye(size(B_affmap));
     
-    f_eval=f(x,y); % Volumenkraft an aktuellen Knoten auswerten
-    KK=elasticStiffness(x,y,lambda,mu,d_phihat,quad_low,nBaseFun); % lokale Steifigkeitsmatrix berechnen
-    MK=elasticMass(x,y); % lokale Massenmatrix berechnen
+    KK=elasticStiffness(lambda,mu,d_phihat,quad_low,nBaseFun,InvB_affmap,detB_affmap); % lokale Steifigkeitsmatrix berechnen
     %fK=[f_eval(1,1) f_eval(2,1) f_eval(1,2) f_eval(2,2) f_eval(1,3) f_eval(2,3)]'; % Volumenkraft an den aktuellen Knoten bestimmen
-    fK=zeros(nBaseFun,1);
-    counter=1;
-    for k=1:2:nBaseFun
-        fK(k)=f_eval(1,counter); 
-        fK(k+1)=f_eval(2,counter);
-        counter=counter+1;
-    end
+    
+    MK=elasticMass(phihat,B_affmap,d_affmap,detB_affmap); % lokale Massenmatrix berechnen
     FK=MK*fK; % lokalen Lastsvektor bestimmen
     
     % Assembliere durch addieren der lokalen Matrizen an die richtigen
@@ -100,7 +98,7 @@ K = K(~dirichlet,~dirichlet); % Dirichletknoten aus der Steifigkeitsmatrix elimi
 end
 
 
-function KK = elasticStiffness(x,y,mu,lambda,d_phihat,quad_low,nBaseFun)
+function KK = elasticStiffness(mu,lambda,d_phihat,quad_low,nBaseFun,InvB_affmap,detB_affmap)
 % Input: x und y Koordinaten eines Elements
 % Input: Lame Parameter mu und lambda
 
@@ -160,12 +158,52 @@ end
 function MK = elasticMass(x,y)
 area=polyarea(x,y); % Flaeche mittels polyarea bestimmen
 % lokale Massenmatrix bestimmen
-MK=[2 0 1 0 1 0;
-    0 2 0 1 0 1;
-    1 0 2 0 1 0;
-    0 1 0 2 0 1;
-    1 0 1 0 2 0;
-    0 1 0 1 0 2]*area/12;
+% MK=[2 0 1 0 1 0;
+%     0 2 0 1 0 1;
+%     1 0 2 0 1 0;
+%     0 1 0 2 0 1;
+%     1 0 1 0 2 0;
+%     0 1 0 1 0 2]*area/12;
+
+
+phihat_mat=cell(nBaseFun,1);
+counter=1;
+for i=1:2:nBaseFun
+    phihat_mat{i}=@(x,y) [phihat{counter}(x,y),0];
+    phihat_mat{i+1}=@(x,y) [0,phihat{counter}(x,y)];
+    counter=counter+1;
+end
+
+%Knoten der Quadraturformel
+xhat_quad = quad_low.knoten(:,1); 
+yhat_quad = quad_low.knoten(:,2);
+
+f_eval=f(xhat_quad,yhat_quad); % Volumenkraft an Knoten der Quadraturformel auswerten
+
+fK=zeros(nBaseFun,1);
+counter=1;
+for k=1:2:nBaseFun
+    fK(k)=f_eval(1,counter);
+    fK(k+1)=f_eval(2,counter);
+    counter=counter+1;
+end
+
+MK=zeros(nBaseFun);
+for i=1:length(xhat_quad)
+    
+    for k=1:length(quadr_P1.gewichte)
+                wk=quadr_P1.gewichte(k);
+                xk=quadr_P1.knoten(k,:);
+                xk_T=B*xk'+d;
+                b_T(i)=b_T(i)+wk*absDetB*phi_hat{i}(xk)*f(xk_T);
+            end
+    
+    temp=phihat_mat(xhat_quad(i),yhat_quad(i))*phihat_mat(xhat_quad(i),yhat_quad(i))'*fK;
+    KK = KK + detB_affmap* quad_low.gewichte(i) .* temp;
+end
+
+
+
 end
 
 function [mu,lambda] = enu2lame(E,nu)
