@@ -14,8 +14,8 @@ elseif order == 2
 %                 1/2,1/2;
 %                 0,1/2];
     vertices = [0,0;
-                0,1;
                 1,0;
+                0,1;
                 0,1/2;
                 1/2,0;
                 1/2,1/2];
@@ -25,11 +25,11 @@ elseif order == 2
     d_phi = cell(2,numBaseFun);
     A = zeros(numBaseFun);
     A(:,1) = ones(numBaseFun,1);
-    A(:,3) = vertices(:,1);
-    A(:,2) = vertices(:,2);
-    A(:,5) = vertices(:,1).^2;
-    A(:,6) = vertices(:,1).*vertices(:,2);
-    A(:,4) = vertices(:,2).^2;
+    A(:,2) = vertices(:,1);
+    A(:,3) = vertices(:,2);
+    A(:,4) = vertices(:,1).^2;
+    A(:,5) = vertices(:,1).*vertices(:,2);
+    A(:,6) = vertices(:,2).^2;
     for i = 1:numBaseFun
         b = zeros(numBaseFun,1);
         b(i) = 1;
