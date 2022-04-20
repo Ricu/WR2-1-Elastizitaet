@@ -1,11 +1,11 @@
 function [vert,tri] = extendGridLagr(vert,tri,order)
 %EXTENDGRIDLAGR Summary of this function goes here
 %   Detailed explanation goes here
-order = 2; % Annahme das hier gerade order 2 verwendet wird
+% Annahme, dass hier gerade order 2 verwendet wird
 nElements = size(tri,1);
 vertCounter = size(vert,1);
 nAdd = 3; % Hardcode fuer order = 2; Anzahl an Knoten die Pro element hinzugefügt werden
-vertNew = zeros(nAdd*nElements,2); % Neue Knotenliste (inkl. mglicher Duplikate)
+vertNew = zeros(nAdd*nElements,2); % Neue Knotenliste (inkl. moeglicher Duplikate)
 counter = 1;
 
 for i = 1:nElements
@@ -18,12 +18,12 @@ for i = 1:nElements
 end
 
 [vertNew,~,ic] = unique(vertNew,"rows","stable"); %Entferne die Knoten, welche mehrfach erstellet wurden
-% ic ist nun eine Abbildung von mehrfachen knoten auf die einzigartigen
-% dies kann dann im folgende zur markierung der Knoten auf die enzelnen
-% elemente genutzt werden. praktischerweise wurden ja die ursorünglichen
-% knoten in der richtigen reihenfolge erstellt (in dem loop)
-triNew = reshape(ic, [nAdd,size(tri,1)])'; %markiere knoten
-triNew = triNew + vertCounter; %Korrigiere um die bereits bestehenden knoten
+% ic ist nun eine Abbildung von mehrfachen Knoten auf die einzigartigen
+% dies kann dann im Folgenden zur Markierung der Knoten auf die einzelnen
+% Elemente genutzt werden. Praktischerweise wurden ja die urspruenglichen
+% Knoten in der richtigen Reihenfolge erstellt (in dem loop)
+triNew1 = reshape(ic, [nAdd,size(tri,1)])'; %markiere Knoten
+triNew = triNew1 + vertCounter; %Korrigiere um die bereits bestehenden Knoten
 vert = [vert; vertNew];
 tri = [tri, triNew];
 end

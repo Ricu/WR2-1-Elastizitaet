@@ -25,5 +25,5 @@ deformed_area = vert; % Deformierte Liste initialisieren
 deformed_area(:,1) = deformed_area(:,1) + U; % Deformierung in x_1 Richtung
 deformed_area(:,2) = deformed_area(:,2) + V; % Deformierung in x_2 Richtung
 
-plotDeformationVectors(vert,deformed_area,U,V,1);
-plotDeformationPolygons(tri,vert,deformed_area,1);
+plotDeformationVectors(order,vert,deformed_area,U,V,1);
+plotDeformationPolygons(tri,vert,order,deformed_area,1);

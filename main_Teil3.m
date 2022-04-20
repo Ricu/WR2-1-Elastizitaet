@@ -32,12 +32,12 @@ deformed_area1 = vert1; % Deformierte Liste initialisieren
 deformed_area1(:,1) = deformed_area1(:,1) + U1; % Deformierung in x_1 Richtung
 deformed_area1(:,2) = deformed_area1(:,2) + V1; % Deformierung in x_2 Richtung
 
-figDefVec = plotDeformationVectors(vert1,deformed_area1,U1,V1,2);
-figDefPol = plotDeformationPolygons(tri1,vert1,deformed_area1,2);
+figDefVec = plotDeformationVectors(1,vert1,deformed_area1,U1,V1,2);
+figDefPol = plotDeformationPolygons(tri1,vert1,1,deformed_area1,2);
 
 deformed_area2 = vert2; % Deformierte Liste initialisieren
 deformed_area2(:,1) = deformed_area2(:,1) + U2; % Deformierung in x_1 Richtung
 deformed_area2(:,2) = deformed_area2(:,2) + V2; % Deformierung in x_2 Richtung
 
-figDefVec = plotDeformationVectors(vert2,deformed_area2,U2,V2,2,figDefVec);
-figDefPol = plotDeformationPolygons(tri2,vert2,deformed_area2,2,figDefPol);
+figDefVec = plotDeformationVectors(2,vert2,deformed_area2,U2,V2,2,figDefVec);
+figDefPol = plotDeformationPolygons(tri2,vert2,2,deformed_area2,2,figDefPol);

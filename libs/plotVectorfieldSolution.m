@@ -7,7 +7,7 @@ else
     t = get(fig,'children'); % Extrahiere das TiledLayoutObject unter der Annahme, das alle Plots mit diesem erstellt wurden
 end
 
-subtitle("subtitle")
+%subtitle("subtitle")
 nexttile
 trisurf(tri(:,1:3),vert(:,1),vert(:,2),U);
 title("U: x_1 Richtung")
