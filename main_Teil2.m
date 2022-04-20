@@ -32,12 +32,13 @@ scatter(vert(dirichlet,1),vert(dirichlet,2),[],"r") % Dirichletknoten markieren
 legend("Triangulierung","Dirichletrand Knoten") % Legende hinzufuegen
 grid = struct("vert",vert,"tri",tri,"dirichlet",dirichlet); % Gitter in eine Struktur bringen. 
 % Macht die uebergabe einfacher und dient als logische Einheit
+plotGridDirichlet(grid,1,[],"Triangulierung der Ordnung 1");
 
 %% Testen
 E = 210; nu = 0.3; % Materialparameter
 f = @(x,y) [ones(size(x));ones(size(y))]; % Volumenkraft
 gD = @(x) 0*x; % Dirichlet-Randwertfunktion
-order=1;    %Grad der Basisfunktionen festlegen
+order = 1;    %Grad der Basisfunktionen festlegen
 
 [U,V] = elastSolver(grid,E,nu,f,gD,order); % Problem loesen
 

@@ -75,8 +75,11 @@ N=size(p,1);                                         % Number of points N
 
 count=0;
 pold=inf;                                            % For first iteration
-% clf,view(2),axis equal,axis off
-figure(); tiledlayout(1,3)
+% Prepare plot
+if plot
+    figure("Name","distmesh2d Plot",'NumberTitle','off'); tiledlayout(1,3)
+end
+
 while 1
   count=count+1;
   % 3. Retriangulation by the Delaunay algorithm

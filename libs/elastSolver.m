@@ -8,7 +8,7 @@ dirichlet2 = false(2*length(vert),1); % Neuen logischen Vektor erstellen
 dirichlet2(ind) = true; % Dirichletknoten markieren
 
 [mu,lambda]=enu2lame(E,nu); % Materialparameter extrahieren
-[K,~,F] = elastAssemble(vert',tri',mu,lambda,f,dirichlet2,gD,order); % Assemblierungsroutine aufrufen
+[K,F] = elastAssemble(vert',tri',mu,lambda,f,dirichlet2,gD,order); % Assemblierungsroutine aufrufen
 
 
 d = zeros(length(F),1); % Loesungsvektor initialisieren
@@ -47,7 +47,7 @@ nBaseFun = 2*length(phihat); % Anzahl Basisfunktion für Order = 1: 6
 % Anzahl Basisfunktion für Order (Lagrange) = k: (k+2)*(k+1);
 nEleLoc = nBaseFun^2; % Anzahl Elemente der lokalen Steifigkeitsmatrix
 K_val = zeros(nEleLoc*length(t),1);
-M_val = K_val;
+%M_val = K_val;
 iIndex = K_val;
 jIndex = K_val;
 
@@ -64,8 +64,8 @@ for i=1:size(t,2) % ueber die Elemente iterieren
     KK=elasticStiffness(lambda,mu,d_phihat,quad_low,nBaseFun,InvB_affmap,detB_affmap); % lokale Steifigkeitsmatrix berechnen
     %fK=[f_eval(1,1) f_eval(2,1) f_eval(1,2) f_eval(2,2) f_eval(1,3) f_eval(2,3)]'; % Volumenkraft an den aktuellen Knoten bestimmen
     
-    MK=elasticMass(phihat,B_affmap,d_affmap,detB_affmap); % lokale Massenmatrix berechnen
-    FK=MK*fK; % lokalen Lastsvektor bestimmen
+    FK=elasticMass(phihat,f,B_affmap,d_affmap,detB_affmap,nBaseFun,quad_low); % lokale Massenmatrix berechnen
+     % lokalen Lastsvektor bestimmen
     
     % Assembliere durch addieren der lokalen Matrizen an die richtigen
     % Stellen der globalen Matrizen
@@ -75,11 +75,11 @@ for i=1:size(t,2) % ueber die Elemente iterieren
     iIndex((i-1)*nEleLoc+1:i*nEleLoc) = reshape(repmat(node_ind2',nBaseFun,1),nEleLoc,1); % i-Indizes speichern
     jIndex((i-1)*nEleLoc+1:i*nEleLoc) = repmat(node_ind2,nBaseFun,1); % j-Indizes speichern
     K_val((i-1)*nEleLoc+1:i*nEleLoc) = reshape(KK,nEleLoc,1); % Werte für die Steifigkeitsmatrix speichern
-    M_val((i-1)*nEleLoc+1:i*nEleLoc) = reshape(MK,nEleLoc,1); % Werte für die Massenmatrix speichern
+    %M_val((i-1)*nEleLoc+1:i*nEleLoc) = reshape(MK,nEleLoc,1); % Werte für die Massenmatrix speichern
     F(node_ind2) = F(node_ind2) + FK; % Der Lastvektor kann ohne Umwege aktualisiert werden
 end
 K = sparse(iIndex,jIndex,K_val,n_nodes,n_nodes); % Anhand der zuvor erstellten Listen die Steifigkeitsmatrix erstellen
-M = sparse(iIndex,jIndex,M_val,n_nodes,n_nodes); % Anhand der zuvor erstellten Listen die Massenmatrix erstellen
+%M = sparse(iIndex,jIndex,M_val,n_nodes,n_nodes); % Anhand der zuvor erstellten Listen die Massenmatrix erstellen
 
 
 K_dir = K; % Speichere die Steifigkeitsmatrix inklusive der Dirichletknoten
@@ -165,45 +165,46 @@ area=polyarea(x,y); % Flaeche mittels polyarea bestimmen
 %     1 0 1 0 2 0;
 %     0 1 0 1 0 2]*area/12;
 
-
-phihat_mat=cell(nBaseFun,1);
-counter=1;
-for i=1:2:nBaseFun
-    phihat_mat{i}=@(x,y) [phihat{counter}(x,y),0];
-    phihat_mat{i+1}=@(x,y) [0,phihat{counter}(x,y)];
-    counter=counter+1;
+if nBaseFun==6
+    phihat_mat=@(x,y)[phihat{1}(x,y),0;
+                      0,phihat{1}(x,y);
+                      phihat{2}(x,y),0;
+                      0,phihat{2}(x,y);
+                      phihat{3}(x,y),0;
+                      0,phihat{3}(x,y)];
+else %nBaseFun==12
+    phihat_mat=@(x,y)[phihat{1}(x,y),0;
+                      0,phihat{1}(x,y);
+                      phihat{2}(x,y),0;
+                      0,phihat{2}(x,y);
+                      phihat{3}(x,y),0;
+                      0,phihat{3}(x,y);
+                      phihat{4}(x,y),0;
+                      0,phihat{4}(x,y);
+                      phihat{5}(x,y),0;
+                      0,phihat{5}(x,y);
+                      phihat{6}(x,y),0;
+                      0,phihat{6}(x,y);];
 end
 
 %Knoten der Quadraturformel
 xhat_quad = quad_low.knoten(:,1); 
 yhat_quad = quad_low.knoten(:,2);
 
-f_eval=f(xhat_quad,yhat_quad); % Volumenkraft an Knoten der Quadraturformel auswerten
+nVertQuad=length(xhat_quad);
 
-fK=zeros(nBaseFun,1);
-counter=1;
-for k=1:2:nBaseFun
-    fK(k)=f_eval(1,counter);
-    fK(k+1)=f_eval(2,counter);
-    counter=counter+1;
+x_quad=zeros(nVertQuad,1);
+y_quad=zeros(nVertQuad,1);
+for i=1:nVertQuad
+    x_quad(i)=B_affmap(1,:)*[xhat_quad(i);yhat_quad(i)]+d_affmap(1);
+    y_quad(i)=B_affmap(2,:)*[xhat_quad(i);yhat_quad(i)]+d_affmap(2);
 end
 
-MK=zeros(nBaseFun);
-for i=1:length(xhat_quad)
-    
-    for k=1:length(quadr_P1.gewichte)
-                wk=quadr_P1.gewichte(k);
-                xk=quadr_P1.knoten(k,:);
-                xk_T=B*xk'+d;
-                b_T(i)=b_T(i)+wk*absDetB*phi_hat{i}(xk)*f(xk_T);
-            end
-    
-    temp=phihat_mat(xhat_quad(i),yhat_quad(i))*phihat_mat(xhat_quad(i),yhat_quad(i))'*fK;
-    KK = KK + detB_affmap* quad_low.gewichte(i) .* temp;
+FK=zeros(nBaseFun,1);
+for i=1:length(xhat_quad)    
+    temp=phihat_mat(xhat_quad(i),yhat_quad(i))*f(x_quad(i),y_quad(i));
+    FK = FK + detB_affmap* quad_low.gewichte(i) .* temp;
 end
-
-
-
 end
 
 function [mu,lambda] = enu2lame(E,nu)

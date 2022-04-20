@@ -19,11 +19,6 @@ f = @(x,y) [ones(size(x));ones(size(y))]; % Volumenkraft
 gD = @(x) 0*x; % Dirichlet-Randwertfunktion, x=[x_1;x_2]
 order=1;    % Ordnung der Basisfunktionen festlegen
 
-% func = @() elastSolver(grid,E,nu,f,gD);
-% fprintf("%15s: Benoetigte Zeit fuer 1/h = %i: %fs\n", "Optimiert",h, timeit(func))
-% 
-% func = @() elastSolver2(grid,E,nu,f,gD);
-% fprintf("%15s: Benoetigte Zeit fuer 1/h = %i: %fs\n", "Nicht Optimiert",h, timeit(func))
 
 [U,V] = elastSolver(grid,E,nu,f,gD,order); % Problem loesen
 
