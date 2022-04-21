@@ -22,5 +22,6 @@ legend("Original","Deformiert","Verschiebung") % Legende hinzufuegen
 title(sprintf("Ordnung %g",order))
 xlim([xmin,xmax])
 ylim([ymin,ymax])
+
 end
 

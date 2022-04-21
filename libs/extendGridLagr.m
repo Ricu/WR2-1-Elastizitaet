@@ -33,5 +33,5 @@ end
 triNew = reshape(ic, [nAdd,size(tri,1)])'; %markiere knoten
 triNew = triNew + vertCounter; %Korrigiere um die bereits bestehenden knoten
 vert = [vert; vertNew];
-tri = [tri, triNew];
+tri=[tri,triNew];
 end
