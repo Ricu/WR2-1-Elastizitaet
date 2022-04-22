@@ -21,11 +21,11 @@ end
 function [K,F,K_dir,F_dir] = elastAssemble(p,t,lambda,mu,f,dirichlet,gD,order)
 % Input: p als matrix mit allen Knoten
 % Input: e als matrix mit allen Kanten
-% Input: t als matrix mit allen Verbindungen der Trainagulierung
+% Input: t als matrix mit allen Verbindungen der Triangulierung
 
 % Output: K als global assemblierte Steifigkeitsmatrix
 % Output: M als global assemblierte Massenmatrix
-% Output: F als global assemblierter load vector
+% Output: F als global assemblierter Lastvektor
 
 % Load basic functions and quadrature data
 [phihat,d_phihat] = baseFun(order); %TODO: variable order, statt hard coding 1
@@ -61,11 +61,8 @@ for i=1:size(t,2) % Über die Elemente iterieren
     detB_affmap = abs(det(B_affmap));
     InvB_affmap = B_affmap\eye(size(B_affmap));
     
-    KK=elasticStiffness(lambda,mu,d_phihat,quad_low,nBaseFun,InvB_affmap,detB_affmap); % lokale Steifigkeitsmatrix berechnen
-    %fK=[f_eval(1,1) f_eval(2,1) f_eval(1,2) f_eval(2,2) f_eval(1,3) f_eval(2,3)]'; % Volumenkraft an den aktuellen Knoten bestimmen
-    
-    FK=elasticMass(phihat,f,B_affmap,d_affmap,detB_affmap,nBaseFun,quad_low); % lokale Massenmatrix berechnen
-     % lokalen Lastsvektor bestimmen
+    KK=elasticStiffness(lambda,mu,d_phihat,quad_low,nBaseFun,InvB_affmap,detB_affmap); % lokale Steifigkeitsmatrix berechnen 
+    FK=elasticLoad(phihat,f,B_affmap,d_affmap,detB_affmap,nBaseFun,quad_low); % lokale Massenmatrix berechnen
     
     % Assembliere durch addieren der lokalen Matrizen an die richtigen
     % Stellen der globalen Matrizen
@@ -99,48 +96,44 @@ end
 
 
 function KK = elasticStiffness(mu,lambda,d_phihat,quad_low,nBaseFun,InvB_affmap,detB_affmap)
-% Input: x und y Koordinaten eines Elements
-% Input: Lame Parameter mu und lambda
-
 % Output: Lokale Steifigkeitsmatrix
 
-% [area,b,c]=hatGradients(x,y); % Fläche des Elements und Gradienten der Basisfkt. bestimmen
-% D=mu*[2 0 0; 0 2 0; 0 0 1]+lambda*[1 1 0; 1 1 0; 0 0 0]; % Elastizität Matrix aufstellen
-% % Spannungsmatrix aufstellen
-% BK=[b(1) 0 b(2) 0 b(3) 0 ;
-%     0 c(1) 0 c(2) 0 c(3);
-%     c(1) b(1) c(2) b(2) c(3) b(3)];
-% KK=BK'*D*BK*area; % Lokale Steifigkeitsmatrix bestimmen
-
+% Aufstellen der Elastizitaetsmatrix
 D=mu*[2 0 0; 0 2 0; 0 0 1]+lambda*[1 1 0; 1 1 0; 0 0 0]; % Elastizität Matrix aufstellen
 
-%fuer konstante Gradienten
+%% Fuer konstante Gradienten
+
 %[~,phi_jacobi]=hatGradients(x,y,d_phihat,InvB_affmap); % Fläche des Elements und Jacobi-Matix der Basisfkt. bestimmen
+% Aufstellen der Elementverzerrungsmatrix
 % BK=[phi_jacobi(1,1),0,              phi_jacobi(2,1),0,              phi_jacobi(3,1),0;
 %     0,              phi_jacobi(1,2),0,              phi_jacobi(2,2),0,              phi_jacobi(3,2);
 %     phi_jacobi(1,2),phi_jacobi(1,1),phi_jacobi(2,2),phi_jacobi(2,1),phi_jacobi(3,2),phi_jacobi(3,1)];
 
 %KK=BK'*D*BK*area; % Lokale Steifigkeitsmatrix bestimmen
 
-%fuer hoeheren Grad: mit Quadraturformeln
+%% Fuer hoeheren Grad: mit Quadraturformeln
+
+% Aufstellen der Jacobi-Matrix mit Transformation
 phihat_jacobi=cell(nBaseFun,2);
 for i=1:nBaseFun
     phihat_jacobi{i,1}=@(x,y) [d_phihat{1,i}(x,y),d_phihat{2,i}(x,y)]*InvB_affmap(:,1);
     phihat_jacobi{i,2}=@(x,y) [d_phihat{1,i}(x,y),d_phihat{2,i}(x,y)]*InvB_affmap(:,2);
 end
 
-% Verzerrungsmatrix aufstellen
+% Aufstellen der Elementverzerrungsmatrix
 %TODO: Kein hard coding
-if nBaseFun==6
+if nBaseFun==6 %P1 Elemente
     BKhat=@(x,y)[phihat_jacobi{1,1}(x,y),0,                      phihat_jacobi{2,1}(x,y),0,                      phihat_jacobi{3,1}(x,y),0;
-             0,                      phihat_jacobi{1,2}(x,y),0,                      phihat_jacobi{2,2}(x,y),0,                      phihat_jacobi{3,2}(x,y);
-             phihat_jacobi{1,2}(x,y),phihat_jacobi{1,1}(x,y),phihat_jacobi{2,2}(x,y),phihat_jacobi{2,1}(x,y),phihat_jacobi{3,2}(x,y),phihat_jacobi{3,1}(x,y)];
-else %nBaseFun==12
-    BKhat=@(x,y)[phihat_jacobi{1,1}(x,y),0,                      phihat_jacobi{2,1}(x,y),0,                      phihat_jacobi{3,1}(x,y),0,phihat_jacobi{4,1}(x,y),0,phihat_jacobi{5,1}(x,y),0,phihat_jacobi{6,1}(x,y),0;
-             0,                      phihat_jacobi{1,2}(x,y),0,                      phihat_jacobi{2,2}(x,y),0,                      phihat_jacobi{3,2}(x,y),0,                      phihat_jacobi{4,2}(x,y),0,                      phihat_jacobi{5,2}(x,y),0,                      phihat_jacobi{6,2}(x,y);
-             phihat_jacobi{1,2}(x,y),phihat_jacobi{1,1}(x,y),phihat_jacobi{2,2}(x,y),phihat_jacobi{2,1}(x,y),phihat_jacobi{3,2}(x,y),phihat_jacobi{3,1}(x,y),phihat_jacobi{4,2}(x,y),phihat_jacobi{4,1}(x,y),phihat_jacobi{5,2}(x,y),phihat_jacobi{5,1}(x,y),phihat_jacobi{6,2}(x,y),phihat_jacobi{6,1}(x,y)];
+                 0,                      phihat_jacobi{1,2}(x,y),0,                      phihat_jacobi{2,2}(x,y),0,                      phihat_jacobi{3,2}(x,y);
+                 phihat_jacobi{1,2}(x,y),phihat_jacobi{1,1}(x,y),phihat_jacobi{2,2}(x,y),phihat_jacobi{2,1}(x,y),phihat_jacobi{3,2}(x,y),phihat_jacobi{3,1}(x,y)];
+else %nBaseFun==12 P2 Elemente
+    BKhat=@(x,y)[phihat_jacobi{1,1}(x,y),0,                      phihat_jacobi{2,1}(x,y),0,                      phihat_jacobi{3,1}(x,y),0,                      phihat_jacobi{4,1}(x,y),0,                      phihat_jacobi{5,1}(x,y),0,phihat_jacobi{6,1}(x,y),0;
+                 0,                      phihat_jacobi{1,2}(x,y),0,                      phihat_jacobi{2,2}(x,y),0,                      phihat_jacobi{3,2}(x,y),0,                      phihat_jacobi{4,2}(x,y),0,                      phihat_jacobi{5,2}(x,y),0,                      phihat_jacobi{6,2}(x,y);
+                 phihat_jacobi{1,2}(x,y),phihat_jacobi{1,1}(x,y),phihat_jacobi{2,2}(x,y),phihat_jacobi{2,1}(x,y),phihat_jacobi{3,2}(x,y),phihat_jacobi{3,1}(x,y),phihat_jacobi{4,2}(x,y),phihat_jacobi{4,1}(x,y),phihat_jacobi{5,2}(x,y),phihat_jacobi{5,1}(x,y),phihat_jacobi{6,2}(x,y),phihat_jacobi{6,1}(x,y)];
 end
-%Knoten der Quadraturformel
+
+% Aufstellen der Elementstifigkeismatrix: Loesen des Integrals mit Quadraturformel
+% Knoten der Quadraturformel
 xhat_quad = quad_low.knoten(:,1); 
 yhat_quad = quad_low.knoten(:,2);
 
@@ -151,24 +144,19 @@ for i=1:length(xhat_quad)
 end
 end
 
-function FK = elasticMass(phihat,f,B_affmap,d_affmap,detB_affmap,nBaseFun,quad_low)
-%area=polyarea(x,y); % Fläche mittels polyarea bestimmen
-% lokale Massenmatrix bestimmen
-% MK=[2 0 1 0 1 0;
-%     0 2 0 1 0 1;
-%     1 0 2 0 1 0;
-%     0 1 0 2 0 1;
-%     1 0 1 0 2 0;
-%     0 1 0 1 0 2]*area/12;
+function FK = elasticLoad(phihat,f,B_affmap,d_affmap,detB_affmap,nBaseFun,quad_low)
+% Output: Lokalen Lastvektor
 
-if nBaseFun==6
+% Aufstellen der Matrix, die die Basisfunktionen des Referenzelements enthaelt
+%TODO: Kein hard coding
+if nBaseFun==6 %P1 Elemente
     phihat_mat=@(x,y)[phihat{1}(x,y),0;
                       0,phihat{1}(x,y);
                       phihat{2}(x,y),0;
                       0,phihat{2}(x,y);
                       phihat{3}(x,y),0;
                       0,phihat{3}(x,y)];
-else %nBaseFun==12
+else %nBaseFun==12 P2 Elemente
     phihat_mat=@(x,y)[phihat{1}(x,y),0;
                       0,phihat{1}(x,y);
                       phihat{2}(x,y),0;
@@ -183,12 +171,13 @@ else %nBaseFun==12
                       0,phihat{6}(x,y);];
 end
 
-%Knoten der Quadraturformel
+% Knoten der Quadraturformel
 xhat_quad = quad_low.knoten(:,1); 
 yhat_quad = quad_low.knoten(:,2);
 
 nVertQuad=length(xhat_quad);
 
+% Transformation der Quadraturknoten auf das physikalische Element
 x_quad=zeros(nVertQuad,1);
 y_quad=zeros(nVertQuad,1);
 for i=1:nVertQuad
@@ -196,6 +185,7 @@ for i=1:nVertQuad
     y_quad(i)=B_affmap(2,:)*[xhat_quad(i);yhat_quad(i)]+d_affmap(2);
 end
 
+% Aufstellen des Elementlastvektors: Loesen des Integrals mit Quadraturformel
 FK=zeros(nBaseFun,1);
 for i=1:length(xhat_quad)    
     temp=phihat_mat(xhat_quad(i),yhat_quad(i))*f(x_quad(i),y_quad(i));
@@ -211,15 +201,6 @@ function [mu,lambda] = enu2lame(E,nu)
 mu=E/(2*(1+nu)); % Mu berechnen
 lambda=E*nu/((1+nu)*(1-2*nu)); % Lambda berechnen
 end
-
-% function [area,b,c] = hatGradients(x,y)
-% % Input: x und y Koordinaten eines Elements
-% 
-% % Output: ...
-% area=polyarea(x,y); % Fläche mittels polyarea bestimmen
-% b=[y(2)-y(3); y(3)-y(1); y(1)-y(2)]/2/area; % Gradient bestimmen
-% c=[x(3)-x(2); x(1)-x(3); x(2)-x(1)]/2/area; % Gradient bestimmen
-% end
 
 % function [area,phi_jacobi] = hatGradients(x,y,d_phihat,InvB_affmap)
 % % Input: x und y Koordinaten eines Elements
