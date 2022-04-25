@@ -24,23 +24,23 @@ order=2;    %Grad der Basisfunktionen festlegen
 
 
 %% Loesung plotten
-figSolution = plotVectorfieldSolution(vert1,tri1,U1,V1,2);
-figSolution = plotVectorfieldSolution(vert2,tri2,U2,V2,2,figSolution);
+figSolutionPart1 = plotVectorfieldSolution(vert1,tri1,U1,V1,2);
+figSolutionPart1 = plotVectorfieldSolution(vert2,tri2,U2,V2,2,figSolutionPart1);
 
 %% Deformierte Flaeche darstellen
 deformed_area1 = vert1; % Deformierte Liste initialisieren
 deformed_area1(:,1) = deformed_area1(:,1) + U1; % Deformierung in x_1 Richtung
 deformed_area1(:,2) = deformed_area1(:,2) + V1; % Deformierung in x_2 Richtung
 
-figDefVec = plotDeformationVectors(1,vert1,deformed_area1,U1,V1,2);
-figDefPol = plotDeformationPolygons(tri1,vert1,1,deformed_area1,2);
+figDefVecPart1 = plotDeformationVectors(1,vert1,deformed_area1,U1,V1,2);
+figDefPolPart1 = plotDeformationPolygons(tri1,vert1,1,deformed_area1,2);
 
 deformed_area2 = vert2; % Deformierte Liste initialisieren
 deformed_area2(:,1) = deformed_area2(:,1) + U2; % Deformierung in x_1 Richtung
 deformed_area2(:,2) = deformed_area2(:,2) + V2; % Deformierung in x_2 Richtung
 
-figDefVec = plotDeformationVectors(2,vert2,deformed_area2,U2,V2,2,figDefVec);
-figDefPol = plotDeformationPolygons(tri2,vert2,2,deformed_area2,2,figDefPol);
+figDefVecPart1 = plotDeformationVectors(2,vert2,deformed_area2,U2,V2,2,figDefVecPart1);
+figDefPolPart1 = plotDeformationPolygons(tri2,vert2,2,deformed_area2,2,figDefPolPart1);
 
 
 %% Teste verschiedene Materialparameter
