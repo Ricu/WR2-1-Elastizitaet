@@ -24,7 +24,8 @@ pv = [ 0,  0;...
 distmesh2d(@dpoly,@huniform,6,[0,0; 24,30],true,pv,pv); % Gitter erzeugen %Verusacht endlosschleife
 
 %% Dirichletknoten hinzufuegen und plotten
-dirichlet = (vert(:,1) == -0.4); % Dirichletrand, logischer Vektor
+% Toleranz fuer Dirichletknoten einbauen
+dirichlet = (vert(:,1) >= -0.4 - 10^(-8) & vert(:,1) <= -0.4 + 10^(-8)); % Dirichletrand, logischer Vektor
 figure('Name','Triangulierung') % Neues Fenster erzeugen
 patch('vertices',vert,'faces',tri,'edgecol','k','facecol',[.8,.9,1]); % Triangulierung plotten
 hold on; 
