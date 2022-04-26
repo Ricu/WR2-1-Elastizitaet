@@ -2,11 +2,11 @@ clear; clc; % Konsolen Output und Variablen loeschen
 addpath('libs') % Hilfsfunktionen laden
 %% Mesh
 h = 1/16;
-[vert,tri] = genMeshSquare(1,1/h); % TODO val Punkte und Dreiecke erstellen
+[vert,tri] = genMeshSquare(1,1/h); % Knoten- und Elementliste erstellen
 dirichlet = (vert(:,1) == 0); % Dirichletrand, logischer Vektor
 
 figure('Name','Triangulierung') % Neues Fenster erzeugen
-patch('vertices',vert,'faces',tri,'edgecol','k','facecol',[.8,.9,1]); % Triangulierung plotten %TODO VALE triplot nutzen
+patch('vertices',vert,'faces',tri,'edgecol','k','facecol',[.8,.9,1]); % Triangulierung plotten
 hold on; 
 scatter(vert(dirichlet,1),vert(dirichlet,2),[],"r") % Dirichletknoten markieren
 legend("Triangulierung","Dirichletrand Knoten") % Legende hinzufuegen
@@ -23,10 +23,9 @@ order=1;    % Ordnung der Basisfunktionen festlegen
 [U,V] = elastSolver(grid,E,nu,f,gD,order); % Problem loesen
 
 %% Loesung plotten
-figure('Name','Deformierung in x_1 und x_2 Richtung') % Neues Fenster erzeugen %TODO Vale: Fenstertitel
+figure('Name','Deformierung in x_1 und x_2 Richtung') % Neues Fenster erzeugen
 subplot(1,2,1), trisurf(tri,vert(:,1),vert(:,2),U), title("U: x_1 Richtung") % Loesung in x_1 Richtung plotten
 subplot(1,2,2), trisurf(tri,vert(:,1),vert(:,2),V), title("V: x_2 Richtung") % Loesung in x_2 Richtung plotten
-%TODO val colorbar?
 
 %% Deformierte Flaeche darstellen
 deformed_area = vert; % Deformierte Liste initialisieren
