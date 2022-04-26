@@ -14,7 +14,7 @@ counter = 1;
 for i = 1:nElements
     x = vert(tri(i,:),1);
     y = vert(tri(i,:),2);
-    window = counter:counter+nAdd-1;
+    window = counter:counter+nAdd-1; %window entspricht unserer betrachteten Indexmenge
     newValues = zeros(nAdd,2);
 %     for j = 1:order-1
 %         
@@ -26,12 +26,14 @@ for i = 1:nElements
 end
 
 [vertNew,~,ic] = unique(vertNew,"rows","stable"); %Entferne die Knoten, welche mehrfach erstellet wurden
-% ic ist nun eine Abbildung von mehrfachen knoten auf die einzigartigen
-% dies kann dann im folgende zur markierung der Knoten auf die enzelnen
-% elemente genutzt werden. praktischerweise wurden ja die ursorünglichen
-% knoten in der richtigen reihenfolge erstellt (in dem loop)
-triNew = reshape(ic, [nAdd,size(tri,1)])'; %markiere knoten
-triNew = triNew + vertCounter; %Korrigiere um die bereits bestehenden knoten
-vert = [vert; vertNew];
-tri=[tri,triNew];
+% ic ist nun eine Abbildung von mehrfachen Knoten auf die einzigartigen
+% dies kann dann im Folgenden zur Markierung der Knoten auf die enzelnen
+% Elemente genutzt werden. Praktischerweise wurden die urspruenglichen
+% Knoten in der richtigen Reihenfolge erstellt (in dem loop)
+
+% haben bis hier fuer jedes Element 3 neue Knoten erstellt
+triNew = reshape(ic, [nAdd,size(tri,1)])'; %markiere Knoten
+triNew = triNew + vertCounter; %Korrigiere um die bereits bestehenden Knoten
+vert = [vert; vertNew]; % die neuen Knoten an die Knotenliste anfuegen
+tri=[tri,triNew]; % die neuen Elemente an die Elementliste anfuegen
 end
