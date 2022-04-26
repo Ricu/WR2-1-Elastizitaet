@@ -1,46 +1,53 @@
 clear; clc; % Konsolen Output und Variablen loeschen
 addpath('libs') % Hilfsfunktionen laden
-%% Teste verschiedene Materialparameter
+%% Teste verschiedene Gitterfeinheiten
 maxOrder = 2;
-hVec = 1./(2.^(5:6)); % 32, 64
+hVec = 1./(2.^(4:7)); % 16, 32, 64, 128
 nu = 0.3;
-nComparisons = maxOrder * length(hVec) * length(nuVec);
-figGrid = figure("Name","Triangulierung",'NumberTitle','off');
-tiledlayout(1,nComparisons);
-figSolution = figure("Name","Loesung des Elastizitaetproblems",'NumberTitle','off');
-tiledlayout(2,nComparisons,TileIndexing='columnmajor');
-figDefVec = figure("Name","Gebietsvergleich: vor und nach Deformation",'NumberTitle','off');
-tiledlayout(1,nComparisons);
-figDefPol = figure("Name","Gebietsvergleich: vor und nach Deformation",'NumberTitle','off');
-tiledlayout(2,nComparisons,TileIndexing='columnmajor');
-%TODO plotfunktionen mehr infos mitgeben
 
-for i = 1:length(nuVec)
-    nu = nuVec(i);
-    for j = 1:length(hVec)
-        h = hVec(j);
-        for order = 1:maxOrder
-            [vert,tri] = genMeshSquare(1,1/h); % TODO val Punkte und Dreiecke erstellen
-            [vert,tri] = extendGridLagr(vert,tri,order);
-            dirichlet = (vert(:,1) == 0); % Dirichletrand, logischer Vektor
-            grid = struct("vert",vert,"tri",tri,"dirichlet",dirichlet); % Gitter in eine Structure  bringen. 
-            plotGridDirichlet(grid,[],figGrid,"Triangulierung der Ordnung 1");
+Ucell=cell(length(hVec),maxOrder); Vcell=cell(length(hVec),maxOrder);
 
-            % PDE
-            E = 210;  % Materialparameter
-            f = @(x,y) [ones(size(x));ones(size(y))]; % Volumenkraft
-            gD = @(x) 0*x; % Dirichlet-Randwertfunktion, x=[x_1;x_2]
-            
-            [U,V] = elastSolver(grid,E,nu,f,gD,order); % Problem loesen
-
-            deformed_area = vert; % Deformierte Liste initialisieren
-            deformed_area(:,1) = deformed_area(:,1) + U; % Deformierung in x_1 Richtung
-            deformed_area(:,2) = deformed_area(:,2) + V; % Deformierung in x_2 Richtung
-            
-            % Plots
-            figSolution = plotVectorfieldSolution(vert,tri,U,V,[],figSolution);
-            figDefVec = plotDeformationVectors(order,vert,deformed_area,U,V,[],figDefVec);
-            figDefPol = plotDeformationPolygons(tri,vert,order,deformed_area,[],figDefPol);
-        end
+for j = 1:length(hVec)
+    h = hVec(j);
+    for order = 1:maxOrder
+        [vert,tri] = genMeshSquare(1,1/h);
+        [vert,tri] = extendGridLagr(vert,tri,order);
+        dirichlet = (vert(:,1) == 0); % Dirichletrand, logischer Vektor
+        grid = struct("vert",vert,"tri",tri,"dirichlet",dirichlet); % Gitter in eine Structure  bringen.
+        
+        % PDE
+        E = 210;  % Materialparameter
+        f = @(x,y) [ones(size(x));ones(size(y))]; % Volumenkraft
+        gD = @(x) 0*x; % Dirichlet-Randwertfunktion, x=[x_1;x_2]
+        
+        [Ucell{j,order},Vcell{j,order}] = elastSolver(grid,E,nu,f,gD,order); % Problem loesen      
     end
 end
+
+Uref=cell(maxOrder,1); Vref=cell(maxOrder,1);
+for order=1:maxOrder
+    Uref{order}=Ucell{end,order};
+    Vref{order}=Vcell{end,order};
+end
+
+Udiff=cell(length(hVec)-1,maxOrder); Vdiff=cell(length(hVec)-1,maxOrder);
+for j=1:length(hVec)-1
+    for order = 1:maxOrder
+        Udiff{j,order}=abs(norm(Ucell{j,order},1)/size(Ucell{j,order},1)-norm(Uref{order},1)/size(Uref{order},1));
+        Vdiff{j,order}=abs(norm(Vcell{j,order},1)/size(Vcell{j,order},1)-norm(Vref{order},1)/size(Vref{order},1));
+    end
+end
+Udiff=cell2mat(Udiff); Vdiff=cell2mat(Vdiff);
+
+figure("Name","Gitterkonvergenz")
+for order = 1:maxOrder
+    subplot(1,maxOrder,order)
+    plot(hVec(1:end-1),Udiff(:,order));
+    hold on;
+    plot(hVec(1:end-1),Vdiff(:,order));
+    xlabel('Gitterfeinheit')
+    legend('Abweichung in x1-Richtung','Abweichung in x2-Richtung')
+    title('Abweichung der Loesung von der Referenzloesung fuer verschiedene Gitterfeinheiten')
+    subtitle(sprintf('Ordnung %g',order))
+end
+
