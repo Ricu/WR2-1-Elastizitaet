@@ -1,4 +1,13 @@
 function [U,V] = elastSolver(grid,E,nu,f,gD,order)
+%Input: grid Structure mit allen Gitterkomponenten
+%Input: E der Young modulus
+%Input: nu die Poisson ratio
+%Input: f Volumenkraft
+%Input: gD Funktion des Dirichletrandes
+%Input: order Ordnung der Elemente
+
+%Output: U Deformation in x1-Richtung
+%Output: V Deformation in x2-Richtung
 
 vert = grid.vert; tri = grid.tri; dirichlet = grid.dirichlet; % Gitterdaten extrahieren
 % Da jeder Knoten 2 Basisfunktionen verwendet, muss dies auch im logischen
@@ -96,9 +105,19 @@ end
 
 
 function KK = elasticStiffness(mu,lambda,d_phihat,quad_low,nBaseFun,InvB_affmap,detB_affmap)
-% Output: Lokale Steifigkeitsmatrix
+%Input: Lame Parameter mu und lambda
+%Input: d_phihat partiellen Ableitungen der Basisfunktionen auf dem
+%       Referenzelement
+%Input: quad_low Quadraturformeln für ... ?
+%Input: nBaseFun Basisfunktionen entsprechender Ordnung
+%Input: InvB_affmap inverse Matrix der affin linearen Abbildung vom physikalischen 
+%       Element auf das Referenzelement 
+%Input: detB_affmap Determinante der Matrix der affin linearen Abbildung vom physikalischen 
+%       Element auf das Referenzelement
 
-% Aufstellen der Elastizitaetsmatrix
+%Output: lokale Steifigkeitsmatrix
+
+%Aufstellen der Elastizitaetsmatrix
 D=mu*[2 0 0; 0 2 0; 0 0 1]+lambda*[1 1 0; 1 1 0; 0 0 0]; % Elastizität Matrix aufstellen
 
 %% Fuer konstante Gradienten
@@ -116,8 +135,9 @@ D=mu*[2 0 0; 0 2 0; 0 0 1]+lambda*[1 1 0; 1 1 0; 0 0 0]; % Elastizität Matrix a
 % Aufstellen der Jacobi-Matrix mit Transformation
 phihat_jacobi=cell(nBaseFun,2);
 for i=1:nBaseFun
-    phihat_jacobi{i,1}=@(x,y) [d_phihat{1,i}(x,y),d_phihat{2,i}(x,y)]*InvB_affmap(:,1);
-    phihat_jacobi{i,2}=@(x,y) [d_phihat{1,i}(x,y),d_phihat{2,i}(x,y)]*InvB_affmap(:,2);
+    for j=1:2
+        phihat_jacobi{i,j}=@(x,y) [d_phihat{1,i}(x,y),d_phihat{2,i}(x,y)]*InvB_affmap(:,j);
+    end
 end
 
 % Aufstellen der Elementverzerrungsmatrix
@@ -145,9 +165,20 @@ end
 end
 
 function FK = elasticLoad(phihat,f,B_affmap,d_affmap,detB_affmap,nBaseFun,quad_low)
-% Output: Lokalen Lastvektor
+%Input: phihat Basisfunktionen auf dem Referenzelement
+%Input: f Volumenkraft
+%Input: B_affmap Matrix der affin linearen Abbildung vom physikalischen 
+%       Element auf das Referenzelement
+%Input: d_affmap Vektor der affin linearen Abbildung vom physikalischen 
+%       Element auf das Referenzelement
+%Input: detB_affmap Determinante der Matrix der affin linearen Abbildung vom physikalischen 
+%       Element auf das Referenzelement
+%Input: nBaseFun Basisfunktionen der entsprechenden Ordnung
+%Input: quad_low Quadraturformeln für... ?
 
-% Aufstellen der Matrix, die die Basisfunktionen des Referenzelements enthaelt
+%Output: lokaler Lastvektor
+
+%Aufstellen der Matrix, die die Basisfunktionen des Referenzelements enthaelt
 %TODO: Kein hard coding
 if nBaseFun==6 %P1 Elemente
     phihat_mat=@(x,y)[phihat{1}(x,y),0;
@@ -198,7 +229,7 @@ function [mu,lambda] = enu2lame(E,nu)
 % Input: nu ist die Poisson ratio
 
 % Output: Lame Parameter mu und lambda
-mu=E/(2*(1+nu)); % Mu berechnen
+mu=E/(2*(1+nu)); % mu berechnen
 lambda=E*nu/((1+nu)*(1-2*nu)); % Lambda berechnen
 end
 
@@ -218,6 +249,12 @@ end
 
 %% Affine mapping function
 function [B_affmap,d_affmap] = aff_map(x,y)
+%Input: x- und y-Koordinaten der Knoten eines Elements der Triangulierung
+
+%Output: B_affmap Matrix der affin linearen Abbildung vom physikalischen 
+%        Element auf das Referenzelement
+%Output: d_affmap Vektor der affin linearen Abbildung vom physikalischen 
+%        Element auf das Referenzelement
 a1 = [x(1);y(1)];
 a2 = [x(2);y(2)];
 a3 = [x(3);y(3)];
