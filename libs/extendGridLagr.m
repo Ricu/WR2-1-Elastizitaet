@@ -1,4 +1,14 @@
 function [vert,tri] = extendGridLagr(vert,tri,order)
+%extendGridLagr erweitert unser Gitter für P1-Elementen auf P2-Elementen 
+%indem die Kantenmittelpunkte hinzugefuegt werden
+
+%Input: vert als Knotenliste
+%Input: tri als Elementliste mit 3 Knoten je Element
+%Input: order als gewuenschte Ordnung der Elemente
+
+%Output: vert als erweiterte Knotenliste
+%Output: tri als erweiterte Elementliste mit 6 Knoten je Element
+
 %EXTENDGRIDLAGR Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -25,11 +35,12 @@ for i = 1:nElements
     counter = counter + nAdd;
 end
 
-[vertNew,~,ic] = unique(vertNew,"rows","stable"); %Entferne die Knoten, welche mehrfach erstellet wurden
-% ic ist nun eine Abbildung von mehrfachen Knoten auf die einzigartigen
-% dies kann dann im Folgenden zur Markierung der Knoten auf die enzelnen
-% Elemente genutzt werden. Praktischerweise wurden die urspruenglichen
-% Knoten in der richtigen Reihenfolge erstellt (in dem loop)
+[vertNew,~,ic] = unique(vertNew,"rows","stable"); %Entferne die Knoten, 
+% welche mehrfach erstellet wurden ic ist nun eine Abbildung von mehrfachen 
+% Knoten auf die einzigartigen dies kann dann im Folgenden zur Markierung 
+% der Knoten auf die enzelnen Elemente genutzt werden. Praktischerweise 
+% wurden die urspruenglichen Knoten in der richtigen Reihenfolge erstellt 
+% (in dem loop)
 
 % haben bis hier fuer jedes Element 3 neue Knoten erstellt
 triNew = reshape(ic, [nAdd,size(tri,1)])'; %markiere Knoten

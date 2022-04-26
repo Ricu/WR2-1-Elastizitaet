@@ -13,7 +13,12 @@ pv = [-0.4,-0.5;...
        0.1, 0.4;...
       -0.4, 0.7;... % Anders als im beispiel
       -0.4,-0.5]; % Eckpunkte definieren
-[vert,tri] = distmesh2d(@dpoly,@huniform,0.1,[-1,-1; 2,1],true,pv,pv); % Gitter erzeugen
+x1min = min(pv(:,1));
+x1max = max(pv(:,1));
+x2min = min(pv(:,2));
+x2max = max(pv(:,2));
+[vert,tri] = distmesh2d(@dpoly,@huniform,0.1,[x1min,x2min; x1max,x2max],true,pv,pv); % Gitter erzeugen
+h_poly1 = sqrt((vert(1,1)-vert(2,1))^2 + (vert(1,2)-vert(2,2))^2);
 
 %% Polygon 2
 pv = [ 0,  0;...
@@ -21,7 +26,12 @@ pv = [ 0,  0;...
       24, 30;...
       24, 22;...
        0,  0]; % Eckpunkte definieren
-distmesh2d(@dpoly,@huniform,0.5,[0,0; 24,30],true,pv,pv); % Gitter erzeugen %Verusacht endlosschleife
+x1min = min(pv(:,1));
+x1max = max(pv(:,1));
+x2min = min(pv(:,2));
+x2max = max(pv(:,2));
+[vert2,tri2] = distmesh2d(@dpoly,@huniform,25,[x1min,x2min; x1max,x2max],true,pv,pv); % Gitter erzeugen %Verusacht endlosschleife
+h_poly2 = sqrt((vert2(1,1)-vert2(2,1))^2 + (vert2(1,2)-vert2(2,2))^2);
 
 %% Dirichletknoten hinzufuegen und plotten
 % Toleranz fuer Dirichletknoten einbauen
