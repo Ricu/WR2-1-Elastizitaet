@@ -77,7 +77,7 @@ count=0;
 pold=inf;                                            % For first iteration
 % Prepare plot
 if plot
-    figure("Name","distmesh2d Plot",'NumberTitle','off'); tiledlayout(1,3)
+    figure("Name","distmesh2d Plot",'NumberTitle','off'); tiledlayout(1,4)
 end
 
 while 1
@@ -133,3 +133,11 @@ end
 % % Clean up and plot final mesh
 [p,t]=fixmesh(p,t);
 % simpplot(p,t)
+
+if plot 
+    nexttile
+    patch('vertices',p,'faces',t,'edgecol','k','facecol',[.8,.9,1]);
+    title(sprintf("Triangulation nach Iteration %i",count))
+    axis equal tight
+    drawnow
+end
