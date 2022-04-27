@@ -10,18 +10,18 @@ xmin = min(min(vert(:,1)),min(defVert(:,1)));
 xmax = max(max(vert(:,1)),max(defVert(:,1)));
 ymin = min(min(vert(:,2)),min(defVert(:,2)));
 ymax = max(max(vert(:,2)),max(defVert(:,2)));
-xdist = xmax - xmin;
-ydist = ymax - ymin;
+xdist = xmax - xmin;    ydist = ymax - ymin;
 xmin = xmin - 0.05 * xdist; xmax = xmax + 0.05 * xdist;
 ymin = ymin - 0.05 * ydist; ymax = ymax + 0.05 * ydist;
+
 nexttile
 scatter(vert(:,1),vert(:,2),'k','filled'); hold on; % Urspruengliche Flaeche plotten
 scatter(defVert(:,1),defVert(:,2),46); % Deformierte Flaeche plotten
 quiver(vert(:,1),vert(:,2),U,V,0) % Berechnetes Vektorfeld (Verschiebung) plotten
 legend("Original","Deformiert","Verschiebung") % Legende hinzufuegen
 title(sprintf("Ordnung %g",order))
-xlim([xmin,xmax])
-ylim([ymin,ymax])
+xlabel('x_1',FontWeight='bold'); ylabel('x_2',FontWeight='bold');
+xlim([xmin,xmax]);  ylim([ymin,ymax]);
 
 end
 

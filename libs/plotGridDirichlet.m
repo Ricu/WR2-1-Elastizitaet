@@ -9,17 +9,15 @@ else
 end
 
 if ~(exist('customTitle','var')) || isempty(customTitle)
-    titleString = "Triangulierung entsprechender Ordnung";
-else
-    titleString = customTitle;
+    customTitle = "Triangulierung entsprechender Ordnung";
 end
 
 nexttile
-patch('vertices',vert,'faces',tri(:,1:3),'edgecol','k','facecol',[.8,.9,1]); % Triangulierung plotten %TODO VALE triplot nutzen
+patch('vertices',vert,'faces',tri(:,1:3),'edgecol','k','facecol',[.8,.9,1]); % Triangulierung plotten
 hold on; 
 axis equal tight
 scatter(vert(dirichlet,1),vert(dirichlet,2),[],"r") % Dirichletknoten markieren
-title(titleString)
+title(customTitle)
 legend("Triangulierung","Dirichletrand Knoten") % Legende hinzufuegen
 end
 

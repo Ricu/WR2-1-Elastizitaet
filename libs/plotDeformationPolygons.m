@@ -10,13 +10,7 @@ end
 % Knotennummerierung fuer patch aendern; Nummerierung gegen den
 % Uhrzeigersinn
 if order == 2
-    tri_copy=tri;
-    tri(:,1)=tri_copy(:,1);
-    tri(:,2)=tri_copy(:,5);
-    tri(:,3)=tri_copy(:,2);
-    tri(:,4)=tri_copy(:,6);
-    tri(:,5)=tri_copy(:,3);
-    tri(:,6)=tri_copy(:,4);
+    tri = tri(:,[1,5,2,6,3,4]);
 end
 
 nexttile
@@ -26,9 +20,12 @@ ax = gca;
 ax.TitleHorizontalAlignment = 'left';
 subtitle("Polygon vor Deformation")
 axis equal tight;
+xlabel('x_1',FontWeight='bold'); ylabel('x_2',FontWeight='bold');
+
 nexttile
 patch('vertices',defVert,'faces',tri,'edgecol','k','facecol',[.8,.9,1]);
 subtitle("Polygon nach Deformation")
 axis equal tight;
+xlabel('x_1',FontWeight='bold'); ylabel('x_2',FontWeight='bold');
 end
 
