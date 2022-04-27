@@ -1,5 +1,6 @@
 clear; clc; % Konsolen Output und Variablen loeschen
 addpath('libs') % Hilfsfunktionen laden
+addpath('libs/distmesh') % Meshfunktion laden
 %% Mesh
 h = 1/16;
 [vert1,tri1] = genMeshSquare(1,1/h); % TODO val Punkte und Dreiecke erstellen
@@ -13,7 +14,7 @@ figGrid = plotGridDirichlet(grid,2,[],"Triangulierung der Ordnung 1");
 figGrid = plotGridDirichlet(grid2,[],figGrid,"Triangulierung der Ordnung 2");
 %% PDE aus Teil 1
 E = 210; nu = 0.3; % Materialparameter
-f = @(x,y) 100*[ones(size(x));zeros(size(y))]; % Volumenkraft
+f = @(x,y) [ones(size(x));ones(size(y))]; % Volumenkraft
 gD = @(x) 0*x; % Dirichlet-Randwertfunktion, x=[x_1;x_2]
 
 

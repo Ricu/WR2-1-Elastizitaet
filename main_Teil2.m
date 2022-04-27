@@ -13,12 +13,8 @@ pv = [-0.4,-0.5;...
        0.1, 0.4;...
       -0.4, 0.7;... % Anders als im beispiel
       -0.4,-0.5]; % Eckpunkte definieren
-x1min = min(pv(:,1));
-x1max = max(pv(:,1));
-x2min = min(pv(:,2));
-x2max = max(pv(:,2));
-[vert,tri] = distmesh2d(@dpoly,@huniform,0.1,[x1min,x2min; x1max,x2max],true,pv,pv); % Gitter erzeugen
-h_poly1 = sqrt((vert(1,1)-vert(2,1))^2 + (vert(1,2)-vert(2,2))^2);
+bbox = [min(pv(:,1)), min(pv(:,2)); max(pv(:,1)), max(pv(:,2))];
+[vert,tri] = distmesh2d(@dpoly,@huniform,0.1,bbox,true,pv,pv); % Gitter erzeugen
 
 %% Polygon 2
 pv = [ 0,  0;...
@@ -26,22 +22,14 @@ pv = [ 0,  0;...
       24, 30;...
       24, 22;...
        0,  0]; % Eckpunkte definieren
-x1min = min(pv(:,1));
-x1max = max(pv(:,1));
-x2min = min(pv(:,2));
-x2max = max(pv(:,2));
-[vert2,tri2] = distmesh2d(@dpoly,@huniform,25,[x1min,x2min; x1max,x2max],true,pv,pv); % Gitter erzeugen %Verusacht endlosschleife
-h_poly2 = sqrt((vert2(1,1)-vert2(2,1))^2 + (vert2(1,2)-vert2(2,2))^2);
+bbox = [min(pv(:,1)), min(pv(:,2)); max(pv(:,1)), max(pv(:,2))];
+[vert2,tri2] = distmesh2d(@dpoly,@huniform,6,bbox,true,pv,pv); % Gitter erzeugen %Verusacht endlosschleife
 
 %% Dirichletknoten hinzufuegen und plotten
 % Toleranz fuer Dirichletknoten einbauen
 dirichlet_tol = 10^(-8);
 dirichlet = (vert(:,1) >= -0.4 - dirichlet_tol & vert(:,1) <= -0.4 + dirichlet_tol); % Dirichletrand, logischer Vektor
-figure('Name','Triangulierung') % Neues Fenster erzeugen
-patch('vertices',vert,'faces',tri,'edgecol','k','facecol',[.8,.9,1]); % Triangulierung plotten
-hold on; 
-scatter(vert(dirichlet,1),vert(dirichlet,2),[],"r") % Dirichletknoten markieren
-legend("Triangulierung","Dirichletrand Knoten") % Legende hinzufuegen
+
 grid = struct("vert",vert,"tri",tri,"dirichlet",dirichlet); % Gitter in eine Struktur bringen. 
 % Macht die uebergabe einfacher und dient als logische Einheit
 plotGridDirichlet(grid,1,[],"Triangulierung der Ordnung 1");
@@ -54,25 +42,12 @@ order = 1;    %Grad der Basisfunktionen festlegen
 
 [U,V] = elastSolver(grid,E,nu,f,gD,order); % Problem loesen
 
-figure('Name','Deformierung in x_1 und x_2 Richtung') % Neues Fenster erzeugen
-subplot(1,2,1), trisurf(tri,vert(:,1),vert(:,2),U), title("(u_h)_1: x_1 Richtung") % Loesung in x_1 Richtung plotten
-subplot(1,2,2), trisurf(tri,vert(:,1),vert(:,2),V), title("(u_h)_2: x_2 Richtung") % Loesung in x_2 Richtung plotten
+figSolution = plotVectorfieldSolution(vert,tri,U,V,1);
 
 %% Deformierte Flaeche darstellen
 deformed_area = vert; % Deformierte Liste initialisieren
 deformed_area(:,1) = deformed_area(:,1) + U; % Deformierung in x_1 Richtung
 deformed_area(:,2) = deformed_area(:,2) + V; % Deformierung in x_2 Richtung
 
-figure('Name','Gebietsvergleich: vor und nach Deformierung') % Neues Fenster erzeugen
-scatter(vert(:,1),vert(:,2),'k','filled'); hold on; % Urspruengliche Flaeche plotten
-scatter(deformed_area(:,1),deformed_area(:,2),46); % Deformierte Flaeche plotten
-quiver(vert(:,1),vert(:,2),U,V,0) % Berechnetes Vektorfeld (Verschiebung) plotten
-legend("Original","Deformiert","Verschiebung") % Legende hinzufuegen
-
-figure('Name','Gebietsvergleich: vor und nach Deformierung')
-subplot(1,2,1); patch('vertices',vert,'faces',tri,'edgecol','k','facecol',[.8,.9,1]);
-title('Urspruengliches Gebiet')
-axis equal tight; title("Urspruengliches Gebiet")
-subplot(1,2,2); patch('vertices',deformed_area,'faces',tri,'edgecol','k','facecol',[.8,.9,1]);
-title('Deformiertes Gebiet')
-axis equal tight; title("Deformiertes Gebiet")
+plotDeformationVectors(order,vert,deformed_area,U,V,1);
+plotDeformationPolygons(tri,vert,order,deformed_area,1);
