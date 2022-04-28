@@ -1,9 +1,10 @@
 clear; clc; % Konsolen Output und Variablen loeschen
 addpath('libs') % Hilfsfunktionen laden
+addpath('libs/distmesh') % Meshfunktion laden
 %% Teste verschiedene Materialparameter
 maxOrder = 1;
 hVec = 1./(2.^(2:6)); % 32, 64
-nuVec = [0.01, 0.1, 0.3, 0.45, 0.49]; % [0.05, 0.2, 0.4, 0.45, 0.49];
+nuVec = [0.1, 0.3, 0.45, 0.49]; % [0.05, 0.2, 0.4, 0.45, 0.49];
 % nComparisons = maxOrder * length(hVec) * length(nuVec);
 % xN = length(nuVec);
 % yN = length(hVec)*maxOrder;
