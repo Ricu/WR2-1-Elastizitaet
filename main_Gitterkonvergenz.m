@@ -1,53 +1,74 @@
 clear; clc; % Konsolen Output und Variablen loeschen
 addpath('libs') % Hilfsfunktionen laden
+
 %% Teste verschiedene Gitterfeinheiten
-maxOrder = 2;
-hVec = 1./(2.^(4:7)); % 16, 32, 64, 128
-nu = 0.3;
+hVec = 1./(2.^(4:6); % 1/16, 1/32, 1/64, 1/128
+maxOrder = 2; % Teste verschiedene Ordnungen der Elemente
 
+verts=cell(length(hVec),maxOrder); tris=cell(length(hVec),maxOrder);
 Ucell=cell(length(hVec),maxOrder); Vcell=cell(length(hVec),maxOrder);
-
+Uref=cell(maxOrder,1); Vref=cell(maxOrder,1);
 for j = 1:length(hVec)
-    h = hVec(j);
     for order = 1:maxOrder
-        [vert,tri] = genMeshSquare(1,1/h);
-        [vert,tri] = extendGridLagr(vert,tri,order);
-        dirichlet = (vert(:,1) == 0); % Dirichletrand, logischer Vektor
-        grid = struct("vert",vert,"tri",tri,"dirichlet",dirichlet); % Gitter in eine Structure  bringen.
+        % Gittergenerierung
+        [verts{j,order},tris{j,order}] = genMeshSquare(1,1/hVec(j));  %tris{j,order}angulierung mit Eckknoten erstellen
+        [verts{j,order},tris{j,order}] = extendGridLagr(verts{j,order},tris{j,order},order); % Fuer hoehere Ordnung als P1: Hinzufuegen von Knoten
+        dirichlet = (verts{j,order}(:,1) == 0); % Dirichletrand, logischer Vektor
+        grid = struct("vert",verts{j,order},"tri",tris{j,order},"dirichlet",dirichlet); % Gitter in eine Structure  bringen
         
         % PDE
-        E = 210;  % Materialparameter
+        E = 210; nu = 0.3; % Materialparameter
         f = @(x,y) [ones(size(x));ones(size(y))]; % Volumenkraft
         gD = @(x) 0*x; % Dirichlet-Randwertfunktion, x=[x_1;x_2]
         
-        [Ucell{j,order},Vcell{j,order}] = elastSolver(grid,E,nu,f,gD,order); % Problem loesen      
+        % Aufstellen der Loesung
+        [Ucell{j,order},Vcell{j,order}] = elastSolver(grid,E,nu,f,gD,order);
+        
+        % Die Loesungen der verschiedenen Gitter anpassen, sodass sie nur die
+        % Werte an den uebereinstimmenden Punkten enthalten, also die der groebsten 
+        % Triangulierung
+        % sonst: spaeter Dimensionsprobleme beim Vergleich mit der Referenzloesung
+        if (j > 1)
+             [ind,loc] = ismember(verts{j,order},verts{1,order},'rows'); % Pruefe, ob Knoten in  beiden Knotenlisten enthalten sind
+             loc=loc(ind);
+             locInv=zeros(length(verts{1,order}),1);
+             locInv(loc)=1:length(locInv);
+                         
+             Ucell{j,order}=Ucell{j,order}(locInv);
+             Vcell{j,order}=Vcell{j,order}(locInv);
+         end
+        
+        % Die Loesung auf dem feinsten Gitter dient als Referenzloesung
+        if (j == length(hVec))
+            Uref{order}=Ucell{end,order};
+            Vref{order}=Vcell{end,order};
+        end
     end
 end
 
-Uref=cell(maxOrder,1); Vref=cell(maxOrder,1);
-for order=1:maxOrder
-    Uref{order}=Ucell{end,order};
-    Vref{order}=Vcell{end,order};
-end
-
+% Berechnung der Abweichung der Loesungen von der Referenzloesung
 Udiff=cell(length(hVec)-1,maxOrder); Vdiff=cell(length(hVec)-1,maxOrder);
 for j=1:length(hVec)-1
     for order = 1:maxOrder
-        Udiff{j,order}=abs(norm(Ucell{j,order},1)/size(Ucell{j,order},1)-norm(Uref{order},1)/size(Uref{order},1));
-        Vdiff{j,order}=abs(norm(Vcell{j,order},1)/size(Vcell{j,order},1)-norm(Vref{order},1)/size(Vref{order},1));
+        Usub=Ucell{j,order}-Uref{order};
+        Udiff{j,order}=norm((Ucell{j,order}-Uref{order})',1);
+        Vdiff{j,order}=norm((Vcell{j,order}-Vref{order})',1);
     end
 end
 Udiff=cell2mat(Udiff); Vdiff=cell2mat(Vdiff);
 
-figure("Name","Gitterkonvergenz")
+% Plotten
+figure("Name","Gitterkonvergenz: Abweichung der Loesung von der Referenzloesung fuer verschiedene Gitterfeinheiten")
 for order = 1:maxOrder
     subplot(1,maxOrder,order)
     plot(hVec(1:end-1),Udiff(:,order));
     hold on;
     plot(hVec(1:end-1),Vdiff(:,order));
     xlabel('Gitterfeinheit')
-    legend('Abweichung in x1-Richtung','Abweichung in x2-Richtung')
-    title('Abweichung der Loesung von der Referenzloesung fuer verschiedene Gitterfeinheiten')
-    subtitle(sprintf('Ordnung %g',order))
+    ylabel('Abweichung (Absolutbetrag der Differenz der gemittelten Zeilensummennormen)')
+    xlim([0,hVec(1)])
+    ylim([0,max(max(Udiff(:,order)),max(Vdiff(:,order)))])
+    legend('Abweichung in x1-Richtung','Abweichung in x2-Richtung','Location','northwest')
+    title(sprintf('Ordnung %g',order))   
 end
 
