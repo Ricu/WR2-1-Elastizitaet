@@ -1,5 +1,6 @@
 clear; clc; % Konsolen Output und Variablen loeschen
 addpath('libs') % Hilfsfunktionen laden
+addpath('libs/distmesh') % Meshfunktion laden
 %% Teste verschiedene Materialparameter
 maxOrder = 1;
 h = 1/16;
