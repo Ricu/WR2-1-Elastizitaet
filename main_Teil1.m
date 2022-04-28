@@ -15,7 +15,6 @@ f = @(x,y) [ones(size(x));ones(size(y))]; % Volumenkraft
 gD = @(x) 0*x; % Dirichlet-Randwertfunktion, x=[x_1;x_2]
 order = 1;    %Grad der Basisfunktionen festlegen
 
-
 [U,V] = elastSolver(grid,E,nu,f,gD,order); % Problem loesen
 
 %% Loesung plotten
@@ -26,5 +25,5 @@ deformed_area = vert; % Deformierte Liste initialisieren
 deformed_area(:,1) = deformed_area(:,1) + U; % Deformierung in x_1 Richtung
 deformed_area(:,2) = deformed_area(:,2) + V; % Deformierung in x_2 Richtung
 
-plotDeformationVectors(order,vert,deformed_area,U,V,1);
-plotDeformationPolygons(tri,vert,order,deformed_area,1);
+[~,~,defVert] = plotDeformationVectors(vert,U,V,order,1);
+plotDeformationPolygons(vert,tri,deformed_area,order,1);

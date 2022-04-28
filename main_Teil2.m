@@ -45,9 +45,5 @@ order = 1;    %Grad der Basisfunktionen festlegen
 figSolution = plotVectorfieldSolution(vert,tri,U,V,1);
 
 %% Deformierte Flaeche darstellen
-deformed_area = vert; % Deformierte Liste initialisieren
-deformed_area(:,1) = deformed_area(:,1) + U; % Deformierung in x_1 Richtung
-deformed_area(:,2) = deformed_area(:,2) + V; % Deformierung in x_2 Richtung
-
-plotDeformationVectors(order,vert,deformed_area,U,V,1);
-plotDeformationPolygons(tri,vert,order,deformed_area,1);
+[~,~,defVert] = plotDeformationVectors(vert,U,V,order,1);
+plotDeformationPolygons(vert,tri,defVert,order,1);
