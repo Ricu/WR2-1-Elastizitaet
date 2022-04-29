@@ -1,4 +1,4 @@
-function [fig,t] = plotDeformationVectors(order,vert,defVert,U,V,nComparisons,fig)
+function [fig,t,defVert] = plotDeformationVectors(vert,U,V,order,nComparisons,fig)
 if ~(exist('fig','var')) || isempty(fig)
     fig = figure("Name","Gebietsvergleich: vor und nach Deformation",'NumberTitle','off');
     t = tiledlayout(1,nComparisons);
@@ -6,6 +6,13 @@ else
     figure(fig)
     t = get(fig,'children'); % Extrahiere das TiledLayoutObject unter der Annahme, das alle Plots mit diesem erstellt wurden
 end
+if isempty(vert)
+    return
+end
+defVert = vert; % Deformierte Liste initialisieren
+defVert(:,1) = defVert(:,1) + U; % Deformierung in x_1 Richtung
+defVert(:,2) = defVert(:,2) + V; % Deformierung in x_2 Richtung
+
 xmin = min(min(vert(:,1)),min(defVert(:,1)));
 xmax = max(max(vert(:,1)),max(defVert(:,1)));
 ymin = min(min(vert(:,2)),min(defVert(:,2)));

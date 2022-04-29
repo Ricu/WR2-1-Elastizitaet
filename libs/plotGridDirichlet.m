@@ -1,5 +1,5 @@
 function [fig,t] = plotGridDirichlet(grid,nComparisons,fig,customTitle)
-vert = grid.vert; tri = grid.tri; dirichlet = grid.dirichlet; % Gitterdaten extrahieren
+
 if ~(exist('fig','var')) || isempty(fig)
     fig = figure("Name","Triangulierung",'NumberTitle','off');
     t = tiledlayout(1,nComparisons);
@@ -11,6 +11,11 @@ end
 if ~(exist('customTitle','var')) || isempty(customTitle)
     customTitle = "Triangulierung entsprechender Ordnung";
 end
+
+if isempty(grid)
+    return
+end
+vert = grid.vert; tri = grid.tri; dirichlet = grid.dirichlet; % Gitterdaten extrahieren
 
 nexttile
 patch('vertices',vert,'faces',tri(:,1:3),'edgecol','k','facecol',[.8,.9,1]); % Triangulierung plotten
