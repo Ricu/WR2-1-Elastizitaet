@@ -2,7 +2,7 @@ clear; clc; % Konsolen Output und Variablen loeschen
 addpath('libs') % Hilfsfunktionen laden
 
 %% Teste verschiedene Gitterfeinheiten
-hVec = 1./(2.^(4:8)); % 1/16, 1/32, 1/64, 1/128
+hVec = 1./(2.^(4:8)); % 1/16, 1/32, 1/64, 1/128, 1/256
 maxOrder = 2; % Teste verschiedene Ordnungen der Elemente
 
 verts=cell(length(hVec),maxOrder); tris=cell(length(hVec),maxOrder);
