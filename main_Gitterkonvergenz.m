@@ -2,7 +2,7 @@ clear; clc; % Konsolen Output und Variablen loeschen
 addpath('libs') % Hilfsfunktionen laden
 
 %% Teste verschiedene Gitterfeinheiten
-hVec = 1./(2.^(4:6); % 1/16, 1/32, 1/64, 1/128
+hVec = 1./(2.^(4:6)); % 1/16, 1/32, 1/64, 1/128
 maxOrder = 2; % Teste verschiedene Ordnungen der Elemente
 
 verts=cell(length(hVec),maxOrder); tris=cell(length(hVec),maxOrder);
@@ -30,13 +30,11 @@ for j = 1:length(hVec)
         % sonst: spaeter Dimensionsprobleme beim Vergleich mit der Referenzloesung
         if (j > 1)
              [ind,loc] = ismember(verts{j,order},verts{1,order},'rows'); % Pruefe, ob Knoten in  beiden Knotenlisten enthalten sind
-             loc=loc(ind);
-             locInv=zeros(length(verts{1,order}),1);
-             locInv(loc)=1:length(locInv);
-                         
-             Ucell{j,order}=Ucell{j,order}(locInv);
-             Vcell{j,order}=Vcell{j,order}(locInv);
-         end
+             Ucell{j,order}=Ucell{j,order}(ind,:); % Eliminiere Werte an nicht doppelt vorkommende Knoten
+             Vcell{j,order}=Vcell{j,order}(ind,:);
+             Ucell{j,order}(loc(ind),:)=Ucell{j,order}; % Sortiere Werte um entsprechend der Knotensortierung (notwendig fuer Elemente hoeherer Ordnung)
+             Vcell{j,order}(loc(ind),:)=Vcell{j,order};
+       end
         
         % Die Loesung auf dem feinsten Gitter dient als Referenzloesung
         if (j == length(hVec))
@@ -50,9 +48,9 @@ end
 Udiff=cell(length(hVec)-1,maxOrder); Vdiff=cell(length(hVec)-1,maxOrder);
 for j=1:length(hVec)-1
     for order = 1:maxOrder
-        Usub=Ucell{j,order}-Uref{order};
-        Udiff{j,order}=norm((Ucell{j,order}-Uref{order})',1);
-        Vdiff{j,order}=norm((Vcell{j,order}-Vref{order})',1);
+        % Messung der Abweichung ueber gemittelte Zeilensummennorm
+        Udiff{j,order}=norm((Ucell{j,order}-Uref{order})',1)/length(Ucell{j,order});
+        Vdiff{j,order}=norm((Vcell{j,order}-Vref{order})',1)/length(Vcell{j,order});
     end
 end
 Udiff=cell2mat(Udiff); Vdiff=cell2mat(Vdiff);
