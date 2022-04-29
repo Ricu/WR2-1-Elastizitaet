@@ -1,5 +1,6 @@
 clear; clc; % Konsolen Output und Variablen loeschen
 addpath('libs') % Hilfsfunktionen laden
+addpath('libs/distmesh') % Meshfunktion laden
 
 %% Teste verschiedene Gitterfeinheiten
 hVec = 1./(2.^(4:8)); % 1/16, 1/32, 1/64, 1/128, 1/256
