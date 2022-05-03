@@ -1,4 +1,4 @@
-function [U,V] = elastSolver(grid,E,nu,f,gD,order)
+function [U,V,K,F] = elastSolver(grid,E,nu,f,gD,order)
 %Input: grid Structure mit allen Gitterkomponenten
 %Input: E der Young modulus
 %Input: nu die Poisson ratio
@@ -17,7 +17,7 @@ dirichlet2 = false(2*length(vert),1); % Neuen logischen Vektor erstellen
 dirichlet2(ind) = true; % Dirichletknoten markieren
 
 [mu,lambda]=enu2lame(E,nu); % Materialparameter extrahieren
-[K,M,F] = elastAssemble(vert',tri',mu,lambda,f,dirichlet2,gD,order); % Assemblierungsroutine aufrufen
+[K,~,F] = elastAssemble(vert',tri',mu,lambda,f,dirichlet2,gD,order); % Assemblierungsroutine aufrufen
 
 
 d = zeros(length(F),1); % Loesungsvektor initialisieren
