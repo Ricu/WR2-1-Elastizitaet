@@ -1,4 +1,4 @@
-function [U,V] = elastSolver(grid,E,nu,f,gD,order)
+function [U,V,K,F] = elastSolver(grid,E,nu,f,gD,order)
 % Input: grid Structure mit allen Gitterkomponenten
 % Input: E der Young modulus
 % Input: nu die Poisson ratio
