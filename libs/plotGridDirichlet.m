@@ -1,7 +1,7 @@
 function [fig,t] = plotGridDirichlet(grid,nComparisons,fig,customTitle)
 if ~(exist('fig','var')) || isempty(fig)
     fig = figure("Name","Triangulierung",'NumberTitle','off');
-    t = tiledlayout(1,nComparisons);
+    t = tiledlayout(1,nComparisons,'TileSpacing','Compact','Padding','Compact');
 else
     figure(fig)
     t = get(fig,'children'); % Extrahiere das TiledLayoutObject unter der Annahme, das alle Plots mit diesem erstellt wurden

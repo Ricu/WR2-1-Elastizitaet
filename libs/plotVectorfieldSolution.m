@@ -1,7 +1,7 @@
 function [fig,t] = plotVectorfieldSolution(vert,tri,U,V,nComparisons,fig)
 if ~(exist('fig','var')) || isempty(fig)
     fig = figure("Name","Loesung des Elastizitaetproblems",'NumberTitle','off');
-    t = tiledlayout(2,nComparisons,TileIndexing='rowmajor');
+    t = tiledlayout(2,nComparisons,'TileSpacing','Compact','Padding','Compact',TileIndexing='rowmajor');
 else
     figure(fig)
     t = get(fig,'children'); % Extrahiere das TiledLayoutObject unter der Annahme, das alle Plots mit diesem erstellt wurden

@@ -1,7 +1,7 @@
 function [fig,t] = plotDeformationPolygons(vert,tri,defVert,order,nComparisons,fig,customTitle)
 if ~(exist('fig','var')) || isempty(fig)
     fig = figure("Name","Gebietsvergleich: vor und nach Deformation",'NumberTitle','off');
-    t = tiledlayout(1,nComparisons,TileIndexing='rowmajor');
+    t = tiledlayout(1,nComparisons,'TileSpacing','Compact','Padding','Compact',TileIndexing='rowmajor');
 else
     figure(fig)
     t = get(fig,'children'); % Extrahiere das TiledLayoutObject unter der Annahme, das alle Plots mit diesem erstellt wurden
