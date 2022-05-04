@@ -96,7 +96,7 @@ while 1
     if (plot && ismember(count,[50,100,200])) 
         nexttile
         patch('vertices',p,'faces',t,'edgecol','k','facecol',[.8,.9,1]);
-        title(sprintf("Triangulation nach Iteration %i",count))
+        title(sprintf("Triangulierung nach Iteration %i",count))
         axis equal tight
         drawnow
     end
