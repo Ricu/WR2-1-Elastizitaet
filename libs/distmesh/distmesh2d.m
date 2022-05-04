@@ -1,4 +1,4 @@
-function [p,t]=distmesh2d(fd,fh,h0,bbox,plot,pfix,varargin)
+function [p,t]=distmesh2d(fd,fh,h0,bbox,plot,pfix,numPolygon,varargin)
 %DISTMESH2D 2-D Mesh Generator using Distance Functions.
 %   [P,T]=DISTMESH2D(FD,FH,H0,BBOX,PFIX,FPARAMS)
 %
@@ -77,7 +77,7 @@ count=0;
 pold=inf;                                            % For first iteration
 % Prepare plot
 if plot
-    figure("Name","distmesh2d Plot",'NumberTitle','off'); tiledlayout(1,4)
+    figure("Name",sprintf("distmesh2d Plot: Polygon %g",numPolygon),'NumberTitle','off'); tiledlayout(1,4)
 end
 
 while 1
@@ -137,7 +137,7 @@ end
 if plot 
     nexttile
     patch('vertices',p,'faces',t,'edgecol','k','facecol',[.8,.9,1]);
-    title(sprintf("Triangulation nach Iteration %i",count))
+    title(sprintf("Triangulierung nach Iteration %i",count))
     axis equal tight
     drawnow
 end

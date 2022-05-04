@@ -2,8 +2,8 @@ clear; clc; % Konsolen Output und Variablen loeschen
 addpath('libs') % Hilfsfunktionen laden
 addpath('libs/distmesh') % Meshfunktion laden
 
-%% Mesh
-h = 1/16;
+%% Gitter erstellen und und Triangulierung plotten
+h = 1/16; % Gitterfeinheit
 [vert,tri] = genMeshSquare(1,1/h); % Knotenliste und Elementeliste erstellen
 dirichlet = (vert(:,1) == 0); % Dirichletrand, logischer Vektor
 % Gitter in eine Structure  bringen
