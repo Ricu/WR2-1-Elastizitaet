@@ -7,8 +7,7 @@ h = 1/16; % Gitterfeinheit
 [vert,tri] = genMeshSquare(1,1/h); % Knotenliste und Elementeliste erstellen
 dirichlet = (vert(:,1) == 0); % Dirichletrand, logischer Vektor
 % Gitter in eine Structure  bringen
-grid = struct("vert",vert,"tri",tri,"dirichlet",dirichlet);  
-% Macht die Uebergabe einfacher und dient als logische Einheit
+grid = struct("vert",vert,"tri",tri,"dirichlet",dirichlet);
 figDir = plotGridDirichlet(grid,1,[],"Triangulierung der Ordnung 1");
 
 %% PDE 

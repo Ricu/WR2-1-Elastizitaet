@@ -71,16 +71,16 @@ title(sprintf("Kantenlaengenverteilung fuer Polygon 2 mit h_0 = %.1f", h0))
 % Toleranz fuer Dirichletknoten einbauen
 dirichlet_tol = 10^(-8);
 % Dirichletrand, logischer Vektor
-dirichlet = (vert(:,1) >= -0.4 - dirichlet_tol & vert(:,1) <= -0.4 + dirichlet_tol); 
+xdirichlet=-0.4;
+dirichlet = (vert(:,1) >= xdirichlet - dirichlet_tol & vert(:,1) <= xdirichlet + dirichlet_tol); 
 grid = struct("vert",vert,"tri",tri,"dirichlet",dirichlet); % Gitter in eine Struktur bringen 
-% Macht die Uebergabe einfacher und dient als logische Einheit
 plotGridDirichlet(grid,1,[],"Triangulierung der Ordnung 1");
 
 %% PDE
 E = 210; nu = 0.3; % Materialparameter
 f = @(x,y) [ones(size(x));ones(size(y))]; % Volumenkraft
 gD = @(x) 0*x; % Dirichlet-Randwertfunktion
-order = 1;    %Grad der Basisfunktionen festlegen
+order = 1;  % Grad der Basisfunktionen festlegen
 
 %% Problem loesen
 [U,V] = elastSolver(grid,E,nu,f,gD,order); % Problem loesen

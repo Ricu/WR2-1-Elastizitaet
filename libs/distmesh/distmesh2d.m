@@ -137,7 +137,7 @@ end
 if plot 
     nexttile
     patch('vertices',p,'faces',t,'edgecol','k','facecol',[.8,.9,1]);
-    title(sprintf("Triangulierung nach Iteration %i",count))
+    title(sprintf("Finale Triangulierung nach Iteration %i",count))
     axis equal tight
     drawnow
 end

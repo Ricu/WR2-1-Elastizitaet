@@ -2,27 +2,30 @@ clear; clc; % Konsolen Output und Variablen loeschen
 addpath('libs') % Hilfsfunktionen laden
 addpath('libs/distmesh') % Meshfunktion laden
 
-%% Teste verschiedene Gitterfeinheiten
-hVec = 1./(2.^(4:8)); % 1/16, 1/32, 1/64, 1/128, 1/256
-maxOrder = 2; % Teste verschiedene Ordnungen der Elemente
+%% Verschiedene Gitterfeinheiten testen
+hVec = 1./(2.^(4:7)); % 1/16, 1/32, 1/64, 1/128, 1/256
 
+%% Maximalen Grad der Basisfunktionen festlegen
+maxOrder=2;
+
+%% PDE
+E = 210; nu = 0.3; % Materialparameter
+f = @(x,y) [ones(size(x));ones(size(y))]; % Volumenkraft
+gD = @(x) 0*x; % Dirichlet-Randwertfunktion, x=[x_1;x_2]
+
+%% Loop
 verts=cell(length(hVec),maxOrder); tris=cell(length(hVec),maxOrder);
 Ucell=cell(length(hVec),maxOrder); Vcell=cell(length(hVec),maxOrder);
 Uref=cell(maxOrder,1); Vref=cell(maxOrder,1);
 for j = 1:length(hVec)
     for order = 1:maxOrder
-        % Gittergenerierung
-        [verts{j,order},tris{j,order}] = genMeshSquare(1,1/hVec(j));  % Triangulierung mit Eckknoten erstellen
+        %% Gitter erstellen
+        [verts{j,order},tris{j,order}] = genMeshSquare(1,1/hVec(j));  % Knotenliste und Elementeliste erstellen
         [verts{j,order},tris{j,order}] = extendGridLagr(verts{j,order},tris{j,order},order); % Fuer hoehere Ordnung als P1: Hinzufuegen von Knoten
         dirichlet = (verts{j,order}(:,1) == 0); % Dirichletrand, logischer Vektor
         grid = struct("vert",verts{j,order},"tri",tris{j,order},"dirichlet",dirichlet); % Gitter in eine Structure  bringen
         
-        % PDE
-        E = 210; nu = 0.3; % Materialparameter
-        f = @(x,y) [ones(size(x));ones(size(y))]; % Volumenkraft
-        gD = @(x) 0*x; % Dirichlet-Randwertfunktion, x=[x_1;x_2]
-        
-        % Aufstellen der Loesung
+        %% Problem loesen
         [Ucell{j,order},Vcell{j,order}] = elastSolver(grid,E,nu,f,gD,order);
         
         % Die Loesungen der verschiedenen Gitter anpassen, sodass sie nur die
@@ -32,17 +35,18 @@ for j = 1:length(hVec)
         if (j > 1)
             % Pruefe, ob Knoten in  beiden Knotenlisten enthalten sind
             % ind: logischer Vektor; loc: gibt Position des Knotens in der anderen Liste an
-            [ind,loc] = ismember(verts{j,order},verts{1,order},'rows'); 
+            [ind,loc] = ismember(verts{j,order},verts{1,order},'rows');
             
             % Eliminiere Werte an nicht doppelt vorkommenden Knoten
-            Ucell{j,order}=Ucell{j,order}(ind,:); 
+            Ucell{j,order}=Ucell{j,order}(ind,:);
             Vcell{j,order}=Vcell{j,order}(ind,:);
             
             % Sortiere Werte um, sodass die Knotennummerierungen uebereinstimmen (notwendig fuer Elemente hoeherer Ordnung)
-            Ucell{j,order}(loc(ind),:)=Ucell{j,order}; 
+            Ucell{j,order}(loc(ind),:)=Ucell{j,order};
             Vcell{j,order}(loc(ind),:)=Vcell{j,order};
         end
         
+        %% Referenzloesung aufstellen
         % Die Loesung auf dem feinsten Gitter dient als Referenzloesung
         if (j == length(hVec))
             Uref{order}=Ucell{end,order};
@@ -51,18 +55,18 @@ for j = 1:length(hVec)
     end
 end
 
-% Berechnung der Abweichung der Loesungen von der Referenzloesung
+%% Abweichung der Loesungen von der Referenzloesung berechnen
 Udiff=cell(length(hVec)-1,maxOrder); Vdiff=cell(length(hVec)-1,maxOrder);
 for j=1:length(hVec)-1
     for order = 1:maxOrder
-        % Messung der Abweichung ueber gemittelte Zeilensummennorm
+        % Messe Abweichung ueber gemittelte Zeilensummennorm
         Udiff{j,order}=norm((Ucell{j,order}-Uref{order})',1)/length(Ucell{j,order});
         Vdiff{j,order}=norm((Vcell{j,order}-Vref{order})',1)/length(Vcell{j,order});
     end
 end
 Udiff=cell2mat(Udiff); Vdiff=cell2mat(Vdiff); % Cell-Array in Matrix umwandeln
 
-% Plotten der Ergebnisse
+%% Plotten der Ergebnisse
 figure("Name","Gitterkonvergenz")
 for order = 1:maxOrder
     subplot(1,maxOrder,order)
