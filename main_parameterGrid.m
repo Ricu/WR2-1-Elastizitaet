@@ -2,6 +2,8 @@ clear; clc; % Konsolen Output und Variablen loeschen
 addpath('libs') % Hilfsfunktionen laden
 addpath('libs/distmesh') % Meshfunktion laden
 %% Teste verschiedene Materialparameter
+% In diesem Skript betrachten wir die Deformation eines rechteckigen
+% Objekts in Abhaengigkeit von verschiedenen Materialparameterkombinationen
 maxOrder = 1;
 h = 1/16;
 nuVec = [0.1, 0.3, 0.49]; % [0.05, 0.2, 0.4, 0.45, 0.49];
@@ -25,8 +27,9 @@ t = tiledlayout(4,3,'TileSpacing','Compact','Padding','Compact');
 xlabel(t,'x_1',FontWeight='bold')
 ylabel(t,'x_2',FontWeight='bold')
 nexttile(1,[1 3])
-patch('vertices',vert,'faces',tri,'edgecol','k','facecol',[1,1,1]);
+patch('vertices',vert,'faces',tri,'edgecol','k','facecol',[.8,.9,1]);
 ylim([-0.5,1.5]); xlim([0,4.5]);
+title("Referenzkonfiguration")
 axes = cell(length(EVec),length(nuVec));
 
 for i = 1:length(EVec)
@@ -49,7 +52,7 @@ for i = 1:length(EVec)
         figure(figDefPol)
         t = get(figDefPol,'children');
         axes{i,j} = nexttile;
-        patch('vertices',deformed_area,'faces',tri,'edgecol','k','facecol',[1,1,1]);
+        patch('vertices',deformed_area,'faces',tri,'edgecol','k','facecol',[.8,.9,1]);
         title(sprintf("nu = %3.2f, E = %i",nu,E))
         axis equal tight; 
    end
