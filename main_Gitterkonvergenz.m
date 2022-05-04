@@ -72,8 +72,8 @@ for order = 1:maxOrder
     scatter(hVec(1:end-1),Vdiff(:,order),'filled','red');
     xlim([0,hVec(1)])
     ylim([0,max(max(Udiff(:,order)),max(Vdiff(:,order)))])
-    xlabel('Gitterfeinheit')
-    ylabel('Abweichung in gemittelter Zeilensummennorm')
+    xlabel('Gitterfeinheit',FontWeight='bold')
+    ylabel('Abweichung in gemittelter Zeilensummennorm',FontWeight='bold')
     legend('Abweichung in x1-Richtung','Abweichung in x2-Richtung','Location','northwest')
     title('Abweichung der Loesung von der Referenzloesung')
     subtitle(sprintf('Ordnung %g',order))

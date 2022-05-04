@@ -2,22 +2,12 @@ clear; clc; % Konsolen Output und Variablen loeschen
 addpath('libs') % Hilfsfunktionen laden
 addpath('libs/distmesh') % Meshfunktion laden
 %% Teste verschiedene Materialparameter
+% Dieses Skript dient dazu, die durchschnittliche Aenderung der
+% Deformation in den Knoten in Abhaengigkeit von der Schrittweite bzw dem
+% Materialparameter nu zu analysieren
 maxOrder = 1;
-hVec = 1./(2.^(2:6)); % 32, 64
-nuVec = [0.1, 0.3, 0.45, 0.49]; % [0.05, 0.2, 0.4, 0.45, 0.49];
-% nComparisons = maxOrder * length(hVec) * length(nuVec);
-% xN = length(nuVec);
-% yN = length(hVec)*maxOrder;
-% % figGrid = figure("Name","Triangulierung",'NumberTitle','off','PaperType','A4');
-% % tiledlayout(xN,yN);
-% figSolution = figure("Name","Loesung des Elastizitaetproblems",'NumberTitle','off');
-% tiledlayout(xN,2*yN,TileIndexing='columnmajor');
-% % figDefVec = figure("Name","Gebietsvergleich: vor und nach Deformation",'NumberTitle','off');
-% % tiledlayout(xN,yN);
-% figDefPol = figure("Name","Gebietsvergleich: vor und nach Deformation",'NumberTitle','off');
-% tiledlayout(xN,2*yN,TileIndexing='columnmajor');
-%TODO plotfunktionen mehr infos mitgeben
-
+hVec = 1./(2.^(2:6));  % 4, 8, 16, 32
+nuVec = [0.1, 0.3, 0.45, 0.49];
 
 verts = cell(length(hVec),1);
 U = cell(length(hVec),length(nuVec));
@@ -34,7 +24,6 @@ for i = 1:length(hVec)
             [vert,tri] = extendGridLagr(vert,tri,order);
             dirichlet = (vert(:,1) == 0); % Dirichletrand, logischer Vektor
             grid = struct("vert",vert,"tri",tri,"dirichlet",dirichlet); % Gitter in eine Structure  bringen. 
-%             plotGridDirichlet(grid,[],figGrid,"Triangulierung der Ordnung 1");
             verts{i} = vert;
 
             % PDE
@@ -43,21 +32,6 @@ for i = 1:length(hVec)
             gD = @(x) 0*x; % Dirichlet-Randwertfunktion, x=[x_1;x_2]
             
             [U{i,j},V{i,j}] = elastSolver(grid,E,nu,f,gD,order); % Problem loesen
-
-%             deformed_area = vert; % Deformierte Liste initialisieren
-%             deformed_area(:,1) = deformed_area(:,1) + U; % Deformierung in x_1 Richtung
-%             deformed_area(:,2) = deformed_area(:,2) + V; % Deformierung in x_2 Richtung
-            
-%             % Plots
-%             figSolution = plotVectorfieldSolution(vert,tri,U,V,[],figSolution);
-% %             figDefVec = plotDeformationVectors(order,vert,deformed_area,U,V,[],figDefVec);
-%             figDefPol = plotDeformationPolygons(tri,vert,order,deformed_area,[],figDefPol);
-
-%                         figSolution = plotVectorfieldSolution(vert,tri,U,V,1);
-%             figDefVec = plotDeformationVectors(order,vert,deformed_area,U,V,1);
-%             figDefPol = plotDeformationPolygons(tri,vert,order,deformed_area,1);
-
-            
         end
     end
 end
