@@ -34,7 +34,7 @@ function [K,M,F] = elastAssemble(p,t,lambda,mu,f,dirichlet,gD,order)
 % Output: F als global assemblierter Lastvektor
 
 %% Lade Basisfunktionen und Quadraturformeln
-[phihat,d_phihat] = baseFun(order); %TODO: variable order, statt hard coding 1
+[phihat,d_phihat] = baseFun(order);
 if order == 1
     quad_low = load("quad_formeln.mat").quadratur_P1;
     quad_high = load("quad_formeln.mat").quadratur_P5;
@@ -43,10 +43,8 @@ elseif order == 2
     quad_high = load("quad_formeln.mat").quadratur_P5;
 end
 
-
-
 %% Matrizen vorbereiten, in die die Index-Wertepaare gespeichert werden
-nBaseFun = 2*length(phihat);        % Anzahl Basisfunktion
+nBaseFun = 2*length(phihat);        % Anzahl Basisfunktionen
 nElem = length(t);                  % Anzahl Elemente global
 nValLoc = nBaseFun^2;               % Anzahl Eintraege der lokalen Steifigkeitsmatrix
 K_val = zeros(nValLoc*nElem,1);     % Liste fuer K-Werte
@@ -63,9 +61,9 @@ for i=1:size(t,2)                               % Ueber die Elemente iterieren
        
     [B_affmap,d_affmap] = aff_map(x,y);         % Affine Abbildung aufstellen
     detB_affmap = abs(det(B_affmap));           % Determinante der affinen Abb.
-    InvB_affmap = B_affmap\eye(size(B_affmap)); % Inverse der Determinante
+    InvB_affmap = B_affmap\eye(size(B_affmap)); % Inverse der Abbildungsmatrix
     
-    % lokale Matrizen aufstellen
+    % Lokale Matrizen aufstellen
     KK = elasticStiffness(lambda,mu,d_phihat,quad_low,nBaseFun,InvB_affmap,detB_affmap);
     [MK,FK] = elasticMassLoad(phihat,f,B_affmap,d_affmap,detB_affmap,nBaseFun,quad_high);
     
@@ -154,7 +152,6 @@ function [MK,FK]=elasticMassLoad(phihat,f,B_affmap,d_affmap,detB_affmap,nBaseFun
 % Output: lokale Massenmatrix
 
 % Aufstellen der Matrix, die die Basisfunktionen des Referenzelements enthaelt
-% TODO: Kein hard coding
 if nBaseFun == 6 % P1 Elemente
     phihat_mat=@(x,y)[phihat{1}(x,y),0;
                       0,phihat{1}(x,y);
@@ -215,7 +212,7 @@ mu=E/(2*(1+nu));                    % mu berechnen
 lambda=E*nu/((1+nu)*(1-2*nu));      % Lambda berechnen
 end
 
-%% Affine mapping function
+%% Affin lineare Funktion
 function [B_affmap,d_affmap] = aff_map(x,y)
 %Input: x- und y-Koordinaten der Knoten eines Elements der Triangulierung
 
