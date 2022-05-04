@@ -3,7 +3,7 @@ function [x,k,alpha,beta] = PCG(A,b,invM)
 %Initialisierung
 x=zeros(length(b),1);
 r0=b-A*x;
-z0=invM(r0);
+z0=invM*r0;
 p=z0;
 
 %Speicherreservierung fuer alpha und beta
@@ -16,7 +16,7 @@ while norm(r0)/norm(x) > 10^-8
     alphak=(r0'*z0)/(p'*A*p);
     x=x+alphak*p;
     r1=r0-alphak*A*p;
-    z1=invM(r1);
+    z1=invM*r1;
     betak=(z1'*r1)/(z0'*r0);
     p=z1+betak*p;
     
