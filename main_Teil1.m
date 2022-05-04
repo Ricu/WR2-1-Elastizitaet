@@ -7,7 +7,7 @@ h = 1/16;
 dirichlet = (vert(:,1) == 0); % Dirichletrand, logischer Vektor
 grid = struct("vert",vert,"tri",tri,"dirichlet",dirichlet); % Gitter in eine Structure  bringen. 
 % Macht die uebergabe einfacher und dient als logische Einheit
-plotGridDirichlet(grid,1,[],"Triangulierung der Ordnung 1");
+figDir = plotGridDirichlet(grid,1,[],"Triangulierung der Ordnung 1");
 
 %% PDE 
 E = 210; nu = 0.3; % Materialparameter
@@ -25,5 +25,5 @@ deformed_area = vert; % Deformierte Liste initialisieren
 deformed_area(:,1) = deformed_area(:,1) + U; % Deformierung in x_1 Richtung
 deformed_area(:,2) = deformed_area(:,2) + V; % Deformierung in x_2 Richtung
 
-[~,~,defVert] = plotDeformationVectors(vert,U,V,order,1);
-plotDeformationPolygons(vert,tri,deformed_area,order,1);
+[figDefVec,~,defVert] = plotDeformationVectors(vert,U,V,order,1);
+figDefPol = plotDeformationPolygons(vert,tri,deformed_area,order,1);
