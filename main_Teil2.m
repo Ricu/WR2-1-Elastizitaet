@@ -17,13 +17,22 @@ bbox = [min(pv(:,1)), min(pv(:,2)); max(pv(:,1)), max(pv(:,2))];
 [vert,tri] = distmesh2d(@dpoly,@huniform,0.1,bbox,false,pv,pv); % Gitter erzeugen
 
 dists1 = zeros(3*length(tri),1);
+miin1 = zeros(length(tri),1);
+maax1 = zeros(length(tri),1);
 counter = 1;
+counteer = 1;
 for i = 1:length(tri)
     x = vert(tri(i,:),1);
     y = vert(tri(i,:),2);
     dists1(counter:counter+2) = sqrt(abs((x-circshift(x,1)).^2+(y-circshift(y,1)).^2));
+    maax1(counteer) = max(dists1(counter:counter+2));
+    miin1(counteer) = min(dists1(counter:counter+2));
     counter = counter + 3;
+    counteer = counteer +1;
 end
+difSeitenlaenge1 = maax1./miin1;
+max1 = max(difSeitenlaenge1);
+min1 = min(difSeitenlaenge1);
 
 %% Polygon 2
 pv = [ 0,  0;...
@@ -32,16 +41,26 @@ pv = [ 0,  0;...
       24, 22;...
        0,  0]; % Eckpunkte definieren
 bbox = [min(pv(:,1)), min(pv(:,2)); max(pv(:,1)), max(pv(:,2))];
-[vert2,tri2] = distmesh2d(@dpoly,@huniform,6,bbox,true,pv,pv); % Gitter erzeugen %Verusacht endlosschleife
+[vert2,tri2] = distmesh2d(@dpoly,@huniform,9,bbox,true,pv,pv); % Gitter erzeugen %Verusacht endlosschleife
 
 dists2 = zeros(3*length(tri2),1);
+miin2 = zeros(length(tri),1);
+maax2 = zeros(length(tri),1);
 counter = 1;
+counteer = 1;
 for i = 1:length(tri2)
     x = vert2(tri2(i,:),1);
     y = vert2(tri2(i,:),2);
     dists2(counter:counter+2) = sqrt(abs((x-circshift(x,1)).^2+(y-circshift(y,1)).^2));
+    maax2(counteer) = max(dists1(counter:counter+2));
+    miin2(counteer) = min(dists1(counter:counter+2));
     counter = counter + 3;
+    counteer = counteer +1;
 end
+difSeitenlaenge2 = maax2./miin2;
+max2 = max(difSeitenlaenge2);
+min2 = min(difSeitenlaenge2);
+
 
 %% Dirichletknoten hinzufuegen und plotten
 % Toleranz fuer Dirichletknoten einbauen
