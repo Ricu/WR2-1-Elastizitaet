@@ -22,6 +22,6 @@ hold on; axis equal tight;
 scatter(vert(dirichlet,1),vert(dirichlet,2),[],"r") % Dirichletknoten markieren
 title(customTitle)
 xlabel('x_1',FontWeight='bold');   ylabel('x_2',FontWeight='bold');
-legend("Triangulierung","Dirichletrand Knoten") % Legende hinzufuegen
+legend("Triangulierung","Dirichletrand Knoten",'Location', 'southoutside','Orientation','horizontal') % Legende hinzufuegen
 end
 
