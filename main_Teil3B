@@ -25,7 +25,7 @@ axes = cell(length(nuVec),2);
 for i = 1:length(nuVec)
     nu = nuVec(i);
     for order = 1:maxOrder
-        [vert,tri] = genMeshSquare(1,1/h); % TODO val Punkte und Dreiecke erstellen
+        [vert,tri] = genMeshSquare(1,1/h);
         [vert,tri] = extendGridLagr(vert,tri,order);
         dirichlet = (vert(:,1) == 0); % Dirichletrand, logischer Vektor
         grid = struct("vert",vert,"tri",tri,"dirichlet",dirichlet); % Gitter in eine Structure  bringen. 
@@ -39,4 +39,3 @@ for i = 1:length(nuVec)
         axes{i,order} = gca;
     end
 end
-% linkaxes([axes{:}])

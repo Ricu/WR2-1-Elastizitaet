@@ -3,7 +3,7 @@ addpath('libs') % Hilfsfunktionen laden
 addpath('libs/distmesh') % Meshfunktion laden
 %% Mesh
 h = 1/16;
-[vert,tri] = genMeshSquare(1,1/h); % TODO val Punkte und Dreiecke erstellen
+[vert,tri] = genMeshSquare(1,1/h);
 
 %% PDE aus Teil 1
 E = 210; nu = 0.3; % Materialparameter
