@@ -40,7 +40,7 @@ pv = [ 0,  0;...
       24, 22;...
        0,  0]; % Eckpunkte definieren
 bbox = [min(pv(:,1)), min(pv(:,2)); max(pv(:,1)), max(pv(:,2))]; % Beschraenke das Gebiet
-h0 = 9;
+h0 = 6;
 [vert2,tri2] = distmesh2d(@dpoly,@huniform,h0,bbox,true,pv,pv); % Gitter erzeugen
 
 edgeLengthsPol2 = zeros(3*length(tri2),1); % Vektor mit allen Kantenlaengen initialisieren
